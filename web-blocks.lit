@@ -129,20 +129,68 @@
 -	html=['<html><head><style>.apos{position:absolute;margin:0;padding:0;border:1px solid black;overflow:hidden;font-size:6px}</style></head><body>']
 -	for x in blocks.values():
 -		if x.name=='page': continue
--		v={'name':x.name,'l':x.left,'t':x.top,'w':x.right-x.left,'h':x.bottom-x.top}
--		div='<div class="apos" style="left:%(l)dpx;top:%(t)dpx;width:%(w)upx;height:%(h)dpx">%(name)s</div>'%v
+-		v={'html':''.join(getattr(x,'html','')),'l':x.left,'t':x.top,'w':x.right-x.left,'h':x.bottom-x.top}
+-		div='<div class="apos" style="left:%(l)dpx;top:%(t)dpx;width:%(w)upx;height:%(h)dpx">%(html)s</div>'%v
 -		html.append(div)
 -	html.append('</body></html>')
 -	return ''.join(html)
 	
+		Tokenizing
+
+	Tokens are '[', ']', <..>...</..> and words.
+
+=test-tokenizer
+-[block everything
+-	[left 10]
+-	[right 10]
+-	[top 10]
+-	[bottom 10]
+-	<img src="test"/>
+-	<span>test</span>
+-]
+
+=tokenize
+-def tokenize(s):
+-	code=[]
+-	token=[]
+-	html=[]
+-	htmlcount=0
+-	for x in s:
+-		if x=='<':
+-			htmlcount+=1
+-			html.append(x)
+-			continue
+-		if html:
+-			html.append(x)
+-			if x=='/' and html[-2]=='<':
+-				htmlcount-=2
+-				continue
+-			if x=='>' and (htmlcount<=0 or (htmlcount==1 and html[-2]=='/')):
+-				code.append(['html',''.join(html)])
+-				html=[]
+-				htmlcount=0
+-			continue
+
+-		if (x in '[]') or x.isspace():
+-			if token:
+-				code.append(''.join(token))
+-				token=[]
+
+-		if x in '[]':
+-			code.append(x)
+-		elif x.isspace():
+-			pass
+-		else:
+-			token.append(x)
+-	print(code)
+-	return code
 
 		Parsing
 
 	Syntax is a bit forthy with lispy square brackets.
 
 =parse
--def parse(s):
--	code=s.split()
+-def parse(code):
 -	tree=[]
 -	while code:
 -		assert code.pop(0)=='['
@@ -179,13 +227,15 @@
 >eval-block
 >eval
 
+>tokenize
+
 >parse-block
 >parse
 >compile
 >bake
 
 -from sys import argv
--r=bake(eval(compile(parse(open(argv[1]).read()))))
+-r=bake(eval(compile(parse(tokenize(open(argv[1]).read())))))
 -open(argv[2],'w').write(r)
 
 
@@ -197,4 +247,7 @@
 
 =>test/content.blocks
 >test-block-content
+ 
+=>test/tokenizer.blocks
+>test-tokenizer
 
