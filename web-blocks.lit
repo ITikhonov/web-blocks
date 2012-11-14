@@ -66,8 +66,8 @@
 -		[ block block1
 -			[ top		page.top 20 ]
 -			[ left		page.left 20 ]
--			[ bottom	block1.contentBottom 20 ]
--			[ right		block1.contentRight 20 ]
+-			[ bottom	block1.content.bottom 20 ]
+-			[ right		block1.content.right 20 ]
 -			[ content	block2 ]
 -		]
 
@@ -78,14 +78,21 @@
 -			[ right		block2.left 75 ]
 -		]
 
+=eval-content
+-def eval_content(b,f,blocks):
+-	return max([eval_coord(getattr(blocks[x],f),blocks) for x in b.content])
+
 		Evaluating coordinates
 
 	Converting relative coordinates into absolute
 
 =eval-other
 -def eval_other(x,blocks):
--	b,f=x.split('.')
--	return eval_coord(getattr(blocks[b],f),blocks)
+-	a=x.split('.')
+-	if len(a)==2:
+-		return eval_coord(getattr(blocks[a[0]],a[1]),blocks)
+-	elif len(a)==3 and a[1]=='content':
+-		return eval_content(blocks[a[0]],a[2],blocks)
 
 =eval-coord
 -def eval_coord(expr,blocks):
@@ -166,6 +173,7 @@
 -	return blocks
 
 =>main.py
+>eval-content
 >eval-other
 >eval-coord
 >eval-block
