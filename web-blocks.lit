@@ -1,0 +1,192 @@
+
+
+
+		Block coordinates
+
+	Each block is rectangular area, which have top,
+	left, bottom and right coordinates relative to
+	page.
+
+	So at the very core each block looks like:
+
+=test-block-basic
+-		[ block block1
+-			[ top		10 ]
+-			[ left		20 ]
+-			[ bottom	20 ]
+-			[ right		40 ]
+-		]
+
+=parse-block
+-def parse_part(code):
+-	tree=[]
+-	while True:
+-		e=code.pop(0)
+-		if e==']': return tree
+-		if e=='[': tree.append(parse_part(code))
+-		else: tree.append(e)
+
+	But in real life block coordinates can't be defined
+	directly, as they are function of content (text size)
+	or environment (font, viewport size).
+
+	So block coordinates are mostly specified in terms of
+	relation to other blocks.
+
+
+=test-block-relative
+-		[ block block1
+-			[ top		page.top ]
+-			[ left		page.left 20 ]
+-			[ bottom	block1.top 100 ]
+-			[ right		block1.left 120 ]
+-		]
+
+-		[ block block2
+-			[ top		block1.bottom ]
+-			[ left		block1.right ]
+-			[ bottom	block2.top 50 ]
+-			[ right		block2.left 75 ]
+-		]
+
+	In this example block1 and block2 sizes depend on their
+	content. Position of block2 depends on block1 position
+	and size.
+
+
+		Block size
+
+	For some blocks their content is used to determine bottom
+	and right coordinates.
+
+	For each block content-bottom and content-right specifies
+	maximum bottom and right coordinates of blocks it includes.
+
+=test-block-content
+-		[ block block1
+-			[ top		page.top 20 ]
+-			[ left		page.left 20 ]
+-			[ bottom	block1.contentBottom 20 ]
+-			[ right		block1.contentRight 20 ]
+-			[ content	block2 ]
+-		]
+
+-		[ block block2
+-			[ top		block1.top 10 ]
+-			[ left		block1.left 10 ]
+-			[ bottom	block2.top 50 ]
+-			[ right		block2.left 75 ]
+-		]
+
+		Evaluating coordinates
+
+	Converting relative coordinates into absolute
+
+=eval-other
+-def eval_other(x,blocks):
+-	b,f=x.split('.')
+-	return eval_coord(getattr(blocks[b],f),blocks)
+
+=eval-coord
+-def eval_coord(expr,blocks):
+-	if isinstance(expr,int): return expr
+
+-	if len(expr)==1:
+-		try: return int(expr[0])
+-		except ValueError: pass
+
+-		return eval_other(expr[0],blocks)
+-	elif len(expr)==2:
+-		return eval_other(expr[0],blocks)+int(expr[1])
+-		
+-	raise
+
+=eval-block
+-def eval_block(x,blocks):
+-	x.left=eval_coord(x.left,blocks)
+-	x.top=eval_coord(x.top,blocks)
+-	x.right=eval_coord(x.right,blocks)
+-	x.bottom=eval_coord(x.bottom,blocks)
+
+=eval
+-def eval(blocks):
+-	blocks['page']=Block(['block','page',['left','0'],['top','0'],['right','1020'],['bottom','700']])
+-	for x in blocks.values():
+-		eval_block(x,blocks)
+-	return blocks
+
+		Producing html
+
+=bake
+-def bake(blocks):
+-	html=['<html><head><style>.apos{position:absolute;margin:0;padding:0;border:1px solid black;overflow:hidden;font-size:6px}</style></head><body>']
+-	for x in blocks.values():
+-		if x.name=='page': continue
+-		v={'name':x.name,'l':x.left,'t':x.top,'w':x.right-x.left,'h':x.bottom-x.top}
+-		div='<div class="apos" style="left:%(l)dpx;top:%(t)dpx;width:%(w)upx;height:%(h)dpx">%(name)s</div>'%v
+-		html.append(div)
+-	html.append('</body></html>')
+-	return ''.join(html)
+	
+
+		Parsing
+
+	Syntax is a bit forthy with lispy square brackets.
+
+=parse
+-def parse(s):
+-	code=s.split()
+-	tree=[]
+-	while code:
+-		assert code.pop(0)=='['
+-		tree.append(parse_part(code))
+-	return tree
+
+		Compile
+
+	Compiling produces dict of blocks keyed with names
+
+=compile
+-class Block:
+-	def __init__(_,tree):
+-		assert tree[0]=='block'
+-		_.name=tree[1]
+-		for x in tree[2:]:
+-			setattr(_,x[0],x[1:])
+-
+-	def __repr__(_):
+-		return 'Block('+repr(_.__dict__)+')'
+
+-def compile(tree):
+-	blocks={}
+-	for x in tree:
+-		if x[0]=='block': 
+-			b=Block(x)
+-			blocks[b.name]=b
+-	return blocks
+
+=>main.py
+>eval-other
+>eval-coord
+>eval-block
+>eval
+
+>parse-block
+>parse
+>compile
+>bake
+
+-from sys import argv
+-r=bake(eval(compile(parse(open(argv[1]).read()))))
+-open(argv[2],'w').write(r)
+
+
+=>test/basic.blocks
+>test-block-basic
+
+=>test/relative.blocks
+>test-block-relative
+
+=>test/content.blocks
+>test-block-content
+
