@@ -57,8 +57,38 @@
 
 	Position of block2 depends on block1 position and size.
 
-
 		Block content
+
+	Empty blocks are almost useless.
+
+=test-block-html
+-		page = { 
+-			top:		20,
+-			left:		20, 
+-			bottom:		1010, 
+-			right:		700, 
+-		}
+
+-		page.block1 = {
+-			top:	'page.top',
+-			left:	'page.left + 20',
+-			bottom:	'page.block1.top + 100',
+-			right:	'page.block1.left + 120',
+-		}
+
+-		page.block2 = {
+-			top:	'page.block1.bottom',
+-			left:	'page.block1.right',
+-			bottom:	'page.block2.top + 50',
+-			right:	'page.block2.left + 75',
+-			html:	'Hello, world!'
+-		}
+
+
+
+
+
+		Block content size
 
 	For some blocks their content is used to determine bottom
 	and right coordinates.
@@ -86,8 +116,10 @@
 -			id: 'page.block1.block2',
 -			top:	'page.block1.top + 20',
 -			left:	'page.block1.left + 30',
--			bottom:	'page.block1.block2.top + 20',
--			right:	'page.block1.block2.left + 30',
+
+	No bottom and right coordinates - will size it by content.
+
+-			html:	'Hello, world!'
 -		}
 
 		Walking
@@ -165,11 +197,12 @@
 -	each_block(block,bake_block);
 -	block._el=document.createElement('div');
 -	block._el.className='apos';
--	block._el.id=block.id;
+-	if(block.id) block._el.id=block.id;
 -	block._el.style.top	=block.top;
 -	block._el.style.left	=block.left;
 -	block._el.style.width	=block.right - block.left;
 -	block._el.style.height	=block.bottom - block.top;
+-	block._el.innerHTML	=block.html?block.html:'';
 -	document.body.appendChild(block._el);
 -}
 
@@ -202,6 +235,11 @@
 >test-block-relative
 >test-html-post
 
+=>test/html.html
+>test-html-pre
+>test-block-html
+>test-html-post
+ 
 =>test/content.html
 >test-html-pre
 >test-block-content
