@@ -67,20 +67,40 @@
 	maximum bottom and right coordinates of blocks it includes.
 
 =test-block-content
--		block2 = {
--			top:	'block1.top + 10',
--			left:	'block1.left + 10',
--			bottom:	'block2.top + 50',
--			right:	'block2.left + 75',
+-		page = { 
+-			top:		20,
+-			left:		20,
+-			bottom:		'page.contentBottom',
+-			right:		700,
 -		}
 
--		block1 = {
+-		page.block1 = {
+-			id: 'page.block1',
 -			top:	'page.top + 20',
 -			left:	'page.left + 20',
--			bottom:	'block1.content.bottom + 20',
--			right:	'block1.content.right + 20',
--			content: [ block2 ]
+-			bottom:	'page.block1.contentBottom + 20',
+-			right:	'page.block1.contentRight + 30',
 -		}
+
+-		page.block1.block2 = {
+-			id: 'page.block1.block2',
+-			top:	'page.block1.top + 20',
+-			left:	'page.block1.left + 30',
+-			bottom:	'page.block1.block2.top + 20',
+-			right:	'page.block1.block2.left + 30',
+-		}
+
+		Walking
+
+=each-block
+-function each_block(block,func) {
+-	for(var k in block) {
+-		if(k[0]=='_') continue;
+-		if(block.__lookupGetter__(k)) continue;
+-		if(typeof block[k]!='object') continue;
+-		func(block[k]);
+-	}
+-}
 
 		Wrap coordinates
 
@@ -90,7 +110,11 @@
 =wrap-block
 -function wrap_coordinate(block,name) {
 -	block['_'+name]=block[name];
--	block.__defineGetter__(name,function() { return eval_coord(this['_'+name]); });
+-	block.__defineGetter__(name,function() {
+-		var r=eval_coord(this['_'+name]);
+-		wrap_coordinate.depth--;
+-		return r;
+-	});
 -}
 
 -function wrap_block(block) {
@@ -98,11 +122,28 @@
 -	wrap_coordinate(block,'top');
 -	wrap_coordinate(block,'right');
 -	wrap_coordinate(block,'bottom');
--	for(var k in block) {
--		if(k[0]!='_' && typeof block[k]=='object') {
--			wrap_block(block[k]);
--		}
--	}
+
+-	block.__defineGetter__('contentBottom',function() {
+-		var maximum=0;
+-		each_block(this,function(b) {
+-			var y=b._el.offsetTop+b._el.offsetHeight-2;
+-			if(y>maximum) maximum=y;
+-		});
+-		return maximum;
+-		
+-	});
+
+-	block.__defineGetter__('contentRight',function() {
+-		var maximum=0;
+-		each_block(this,function(b) {
+-			var x=b._el.offsetLeft+b._el.offsetWidth-2;
+-			if(x>maximum) maximum=x;
+-		});
+-		return maximum;
+-		
+-	});
+
+-	each_block(block,wrap_block);
 -}
 
 
@@ -119,41 +160,28 @@
 -	}
 -}
 
-=eval-block
--function eval_block(block) {
--	for(var k in block) {
--		if(k[0]!='_' && typeof block[k]=='object') {
--			eval_block(block[k]);
--		}
--	}
+=bake-block
+-function bake_block(block) {
+-	each_block(block,bake_block);
 -	block._el=document.createElement('div');
 -	block._el.className='apos';
+-	block._el.id=block.id;
 -	block._el.style.top	=block.top;
 -	block._el.style.left	=block.left;
 -	block._el.style.width	=block.right - block.left;
 -	block._el.style.height	=block.bottom - block.top;
+-	document.body.appendChild(block._el);
 -}
 
-		Producing html
-
-=bake
--function bake(block) {
--	for(var k in block) {
--		if(k[0]!='_' && typeof block[k]=='object') {
--			document.body.appendChild(block[k]._el);
--			bake(block[k]);
--		}
--	}
--}
-	
 =>main.js
 (function()
+>each-block
 >eval-coord
 >wrap-block
->eval-block
->bake
+>bake-block
 
--window.onload=function() { wrap_block(page); eval_block(page); bake(page); };
+-function run() { wrap_block(page); bake_block(page); }
+-window.onload=run;
 
 )();
 
@@ -175,5 +203,7 @@
 >test-html-post
 
 =>test/content.html
+>test-html-pre
 >test-block-content
+>test-html-post
  
