@@ -34,18 +34,25 @@
 
 
 =test-block-relative
--		block1 = {
--			top:	'page.top',
--			left:	'page.left + 20',
--			bottom:	'block1.top + 100',
--			right:	'block1.left + 120',
+-		page = { 
+-			top:		20,
+-			left:		20, 
+-			bottom:		1010, 
+-			right:		700, 
 -		}
 
--		block2 = {
--			top:	'block1.bottom',
--			left:	'block1.right',
--			bottom:	'block2.top + 50',
--			right:	'block2.left + 75',
+-		page.block1 = {
+-			top:	'page.top',
+-			left:	'page.left + 20',
+-			bottom:	'page.block1.top + 100',
+-			right:	'page.block1.left + 120',
+-		}
+
+-		page.block2 = {
+-			top:	'page.block1.bottom',
+-			left:	'page.block1.right',
+-			bottom:	'page.block2.top + 50',
+-			right:	'page.block2.left + 75',
 -		}
 
 	Position of block2 depends on block1 position and size.
@@ -75,6 +82,29 @@
 -			content: [ block2 ]
 -		}
 
+		Wrap coordinates
+
+	Retrieving left/right/top/bottom should try to evaluate it's value,
+	so we define getters.
+
+=wrap-block
+-function wrap_coordinate(block,name) {
+-	block['_'+name]=block[name];
+-	block.__defineGetter__(name,function() { return eval_coord(this['_'+name]); });
+-}
+
+-function wrap_block(block) {
+-	wrap_coordinate(block,'left');
+-	wrap_coordinate(block,'top');
+-	wrap_coordinate(block,'right');
+-	wrap_coordinate(block,'bottom');
+-	for(var k in block) {
+-		if(k[0]!='_' && typeof block[k]=='object') {
+-			wrap_block(block[k]);
+-		}
+-	}
+-}
+
 
 		Evaluating coordinates
 
@@ -98,10 +128,10 @@
 -	}
 -	block._el=document.createElement('div');
 -	block._el.className='apos';
--	block._el.style.top	=eval_coord(block.top);
--	block._el.style.left	=eval_coord(block.left);
--	block._el.style.width	=eval_coord(block.right) - eval_coord(block.left);
--	block._el.style.height	=eval_coord(block.bottom) - eval_coord(block.top);
+-	block._el.style.top	=block.top;
+-	block._el.style.left	=block.left;
+-	block._el.style.width	=block.right - block.left;
+-	block._el.style.height	=block.bottom - block.top;
 -}
 
 		Producing html
@@ -110,7 +140,6 @@
 -function bake(block) {
 -	for(var k in block) {
 -		if(k[0]!='_' && typeof block[k]=='object') {
--			console.log(k);
 -			document.body.appendChild(block[k]._el);
 -			bake(block[k]);
 -		}
@@ -120,10 +149,11 @@
 =>main.js
 (function()
 >eval-coord
+>wrap-block
 >eval-block
 >bake
 
--window.onload=function() { eval_block(page); bake(page); };
+-window.onload=function() { wrap_block(page); eval_block(page); bake(page); };
 
 )();
 
