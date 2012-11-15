@@ -156,7 +156,6 @@
 -	html=[]
 -	htmlcount=0
 -	for x in s:
--		print(x,htmlcount)
 -		if x=='<':
 -			htmlcount+=1
 -			html.append(x)
