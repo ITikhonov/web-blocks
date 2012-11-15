@@ -10,21 +10,20 @@
 	So at the very core each block looks like:
 
 =test-block-basic
--		[ block block1
--			[ top		10 ]
--			[ left		20 ]
--			[ bottom	20 ]
--			[ right		40 ]
--		]
+-		page = { 
+-			top:		20,
+-			left:		20, 
+-			bottom:		1010, 
+-			right:		700, 
+-		}
 
-=parse-block
--def parse_part(code):
--	tree=[]
--	while True:
--		e=code.pop(0)
--		if e==']': return tree
--		if e=='[': tree.append(parse_part(code))
--		else: tree.append(e)
+-		page.block1 = { 
+-			top:		10,
+-			left:		20, 
+-			bottom:		20, 
+-			right:		40, 
+-		}
+
 
 	But in real life block coordinates can't be defined
 	directly, as they are function of content (text size)
@@ -35,221 +34,116 @@
 
 
 =test-block-relative
--		[ block block1
--			[ top		page.top ]
--			[ left		page.left 20 ]
--			[ bottom	block1.top 100 ]
--			[ right		block1.left 120 ]
--		]
+-		block1 = {
+-			top:	'page.top',
+-			left:	'page.left + 20',
+-			bottom:	'block1.top + 100',
+-			right:	'block1.left + 120',
+-		}
 
--		[ block block2
--			[ top		block1.bottom ]
--			[ left		block1.right ]
--			[ bottom	block2.top 50 ]
--			[ right		block2.left 75 ]
--		]
+-		block2 = {
+-			top:	'block1.bottom',
+-			left:	'block1.right',
+-			bottom:	'block2.top + 50',
+-			right:	'block2.left + 75',
+-		}
 
-	In this example block1 and block2 sizes depend on their
-	content. Position of block2 depends on block1 position
-	and size.
+	Position of block2 depends on block1 position and size.
 
 
-		Block size
+		Block content
 
 	For some blocks their content is used to determine bottom
 	and right coordinates.
 
-	For each block content-bottom and content-right specifies
+	For each block content.bottom and content.right specifies
 	maximum bottom and right coordinates of blocks it includes.
 
 =test-block-content
--		[ block block1
--			[ top		page.top 20 ]
--			[ left		page.left 20 ]
--			[ bottom	block1.content.bottom 20 ]
--			[ right		block1.content.right 20 ]
--			[ content	block2 ]
--		]
+-		block2 = {
+-			top:	'block1.top + 10',
+-			left:	'block1.left + 10',
+-			bottom:	'block2.top + 50',
+-			right:	'block2.left + 75',
+-		}
 
--		[ block block2
--			[ top		block1.top 10 ]
--			[ left		block1.left 10 ]
--			[ bottom	block2.top 50 ]
--			[ right		block2.left 75 ]
--		]
+-		block1 = {
+-			top:	'page.top + 20',
+-			left:	'page.left + 20',
+-			bottom:	'block1.content.bottom + 20',
+-			right:	'block1.content.right + 20',
+-			content: [ block2 ]
+-		}
 
-=eval-content
--def eval_content(b,f,blocks):
--	return max([eval_coord(getattr(blocks[x],f),blocks) for x in b.content])
 
 		Evaluating coordinates
 
 	Converting relative coordinates into absolute
 
-=eval-other
--def eval_other(x,blocks):
--	a=x.split('.')
--	if len(a)==2:
--		return eval_coord(getattr(blocks[a[0]],a[1]),blocks)
--	elif len(a)==3 and a[1]=='content':
--		return eval_content(blocks[a[0]],a[2],blocks)
-
 =eval-coord
--def eval_coord(expr,blocks):
--	if isinstance(expr,int): return expr
-
--	if len(expr)==1:
--		try: return int(expr[0])
--		except ValueError: pass
-
--		return eval_other(expr[0],blocks)
--	elif len(expr)==2:
--		return eval_other(expr[0],blocks)+int(expr[1])
--		
--	raise
+-function eval_coord(expr) {
+-	if(typeof expr == 'string') {
+-		return eval(expr);
+-	} else {
+-		return expr;
+-	}
+-}
 
 =eval-block
--def eval_block(x,blocks):
--	x.left=eval_coord(x.left,blocks)
--	x.top=eval_coord(x.top,blocks)
--	x.right=eval_coord(x.right,blocks)
--	x.bottom=eval_coord(x.bottom,blocks)
-
-=eval
--def eval(blocks):
--	blocks['page']=Block(['block','page',['left','0'],['top','0'],['right','1020'],['bottom','700']])
--	for x in blocks.values():
--		eval_block(x,blocks)
--	return blocks
+-function eval_block(block) {
+-	for(var k in block) {
+-		if(k[0]!='_' && typeof block[k]=='object') {
+-			eval_block(block[k]);
+-		}
+-	}
+-	block._el=document.createElement('div');
+-	block._el.className='apos';
+-	block._el.style.top	=eval_coord(block.top);
+-	block._el.style.left	=eval_coord(block.left);
+-	block._el.style.width	=eval_coord(block.right) - eval_coord(block.left);
+-	block._el.style.height	=eval_coord(block.bottom) - eval_coord(block.top);
+-}
 
 		Producing html
 
 =bake
--def bake(blocks):
--	html=['<html><head><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><style>.apos{position:absolute;margin:0;padding:0;border:1px solid black;overflow:hidden}</style></head><body>']
--	for x in blocks.values():
--		if x.name=='page': continue
--		v={'html':''.join(getattr(x,'html','')),'l':x.left,'t':x.top,'w':x.right-x.left,'h':x.bottom-x.top}
--		div='<div class="apos" style="left:%(l)dpx;top:%(t)dpx;width:%(w)upx;height:%(h)dpx">%(html)s</div>'%v
--		html.append(div)
--	html.append('</body></html>')
--	return ''.join(html)
+-function bake(block) {
+-	for(var k in block) {
+-		if(k[0]!='_' && typeof block[k]=='object') {
+-			console.log(k);
+-			document.body.appendChild(block[k]._el);
+-			bake(block[k]);
+-		}
+-	}
+-}
 	
-		Tokenizing
-
-	Tokens are '[', ']', <..>...</..> and words.
-
-=test-tokenizer
--[block everything
--	[left 10]
--	[right 10]
--	[top 10]
--	[bottom 10]
--	<span>test</span>
--	<div><img src="test"/></div>
--]
-
-=tokenize
--def tokenize(s):
--	code=[]
--	token=[]
--	html=[]
--	htmlcount=0
--	for x in s:
--		if x=='<':
--			htmlcount+=1
--			html.append(x)
--			continue
--		if html:
--			html.append(x)
--			if x=='/' and html[-2]=='<':
--				htmlcount-=2
--				continue
--			if x=='>':
--				if html[-2]=='/':
--					htmlcount-=1
--				if htmlcount<=0:
--					code.append(['html',''.join(html)])
--					html=[]
--					htmlcount=0
--			continue
-
--		if (x in '[]') or x.isspace():
--			if token:
--				code.append(''.join(token))
--				token=[]
-
--		if x in '[]':
--			code.append(x)
--		elif x.isspace():
--			pass
--		else:
--			token.append(x)
--	return code
-
-		Parsing
-
-	Syntax is a bit forthy with lispy square brackets.
-
-=parse
--def parse(code):
--	tree=[]
--	while code:
--		assert code.pop(0)=='['
--		tree.append(parse_part(code))
--	return tree
-
-		Compile
-
-	Compiling produces dict of blocks keyed with names
-
-=compile
--class Block:
--	def __init__(_,tree):
--		assert tree[0]=='block'
--		_.name=tree[1]
--		for x in tree[2:]:
--			setattr(_,x[0],x[1:])
--
--	def __repr__(_):
--		return 'Block('+repr(_.__dict__)+')'
-
--def compile(tree):
--	blocks={}
--	for x in tree:
--		if x[0]=='block': 
--			b=Block(x)
--			blocks[b.name]=b
--	return blocks
-
-=>main.py
->eval-content
->eval-other
+=>main.js
+(function()
 >eval-coord
 >eval-block
->eval
-
->tokenize
-
->parse-block
->parse
->compile
 >bake
 
--from sys import argv
--r=bake(eval(compile(parse(tokenize(open(argv[1]).read())))))
--open(argv[2],'w').write(r)
+-window.onload=function() { eval_block(page); bake(page); };
 
+)();
 
-=>test/basic.blocks
+=test-html-pre
+-<html><head><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><style>.apos{position:absolute;margin:0;padding:0;border:1px solid black;overflow:hidden}</style></head><script>
+
+=test-html-post
+-</script><script src="../main.js"></script><body></body></html>
+
+=>test/basic.html
+>test-html-pre
 >test-block-basic
+>test-html-post
 
-=>test/relative.blocks
+
+=>test/relative.html
+>test-html-pre
 >test-block-relative
+>test-html-post
 
-=>test/content.blocks
+=>test/content.html
 >test-block-content
  
-=>test/tokenizer.blocks
->test-tokenizer
-
