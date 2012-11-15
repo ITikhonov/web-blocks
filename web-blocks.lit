@@ -185,7 +185,6 @@
 -			pass
 -		else:
 -			token.append(x)
--	print(code)
 -	return code
 
 		Parsing
