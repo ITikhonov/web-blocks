@@ -126,7 +126,7 @@
 
 =bake
 -def bake(blocks):
--	html=['<html><head><style>.apos{position:absolute;margin:0;padding:0;border:1px solid black;overflow:hidden;font-size:6px}</style></head><body>']
+-	html=['<html><head><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><style>.apos{position:absolute;margin:0;padding:0;border:1px solid black;overflow:hidden}</style></head><body>']
 -	for x in blocks.values():
 -		if x.name=='page': continue
 -		v={'html':''.join(getattr(x,'html','')),'l':x.left,'t':x.top,'w':x.right-x.left,'h':x.bottom-x.top}
@@ -145,8 +145,8 @@
 -	[right 10]
 -	[top 10]
 -	[bottom 10]
--	<img src="test"/>
 -	<span>test</span>
+-	<div><img src="test"/></div>
 -]
 
 =tokenize
@@ -156,6 +156,7 @@
 -	html=[]
 -	htmlcount=0
 -	for x in s:
+-		print(x,htmlcount)
 -		if x=='<':
 -			htmlcount+=1
 -			html.append(x)
@@ -165,10 +166,13 @@
 -			if x=='/' and html[-2]=='<':
 -				htmlcount-=2
 -				continue
--			if x=='>' and (htmlcount<=0 or (htmlcount==1 and html[-2]=='/')):
--				code.append(['html',''.join(html)])
--				html=[]
--				htmlcount=0
+-			if x=='>':
+-				if html[-2]=='/':
+-					htmlcount-=1
+-				if htmlcount<=0:
+-					code.append(['html',''.join(html)])
+-					html=[]
+-					htmlcount=0
 -			continue
 
 -		if (x in '[]') or x.isspace():
