@@ -130,7 +130,7 @@
 -		if(k[0]=='_') continue;
 -		if(block.__lookupGetter__(k)) continue;
 -		if(typeof block[k]!='object') continue;
--		func(block[k]);
+-		func(block[k],k);
 -	}
 -}
 
@@ -143,11 +143,15 @@
 -function wrap_coordinate(block,name) {
 -	block['_'+name]=block[name];
 -	block.__defineGetter__(name,function() {
+-		if(wrap_coordinate.depth--<0) {
+-			debugger;
+-		}
 -		var r=eval_coord(this['_'+name]);
--		wrap_coordinate.depth--;
 -		return r;
 -	});
 -}
+
+-wrap_coordinate.depth=100;
 
 -function wrap_block(block) {
 -	wrap_coordinate(block,'left');
@@ -155,20 +159,22 @@
 -	wrap_coordinate(block,'right');
 -	wrap_coordinate(block,'bottom');
 
--	block.__defineGetter__('contentBottom',function() {
--		var maximum=0;
+-	block.__defineGetter__('contentHeight',function() {
+-		var o=block._el.offsetTop;
+-		var maximum=block.html?(block._el.offsetHeight-2):0;
 -		each_block(this,function(b) {
--			var y=b._el.offsetTop+b._el.offsetHeight-2;
+-			var y=b._el.offsetTop+b._el.offsetHeight-2-o;
 -			if(y>maximum) maximum=y;
 -		});
 -		return maximum;
 -		
 -	});
 
--	block.__defineGetter__('contentRight',function() {
--		var maximum=0;
+-	block.__defineGetter__('contentWidth',function() {
+-		var o=block._el.offsetLeft;
+-		var maximum=block.html?(block._el.offsetWidth-2):0;
 -		each_block(this,function(b) {
--			var x=b._el.offsetLeft+b._el.offsetWidth-2;
+-			var x=b._el.offsetLeft+b._el.offsetWidth-2-o;
 -			if(x>maximum) maximum=x;
 -		});
 -		return maximum;
@@ -193,17 +199,21 @@
 -}
 
 =bake-block
--function bake_block(block) {
--	each_block(block,bake_block);
+-function bake_block(k,block,z,path) {
+-	path.push(k);
 -	block._el=document.createElement('div');
 -	block._el.className='apos';
+-	block._el.style.zIndex=z;
+-	block._el.innerHTML	=block.html?block.html:'';
+-	block._el.id=path.join('.');
+-	document.body.appendChild(block._el);
+-	each_block(block,function(b,k) {  bake_block(k,b,z+1,path); });
 -	if(block.id) block._el.id=block.id;
 -	block._el.style.top	=block.top;
 -	block._el.style.left	=block.left;
 -	block._el.style.width	=block.right - block.left;
 -	block._el.style.height	=block.bottom - block.top;
--	block._el.innerHTML	=block.html?block.html:'';
--	document.body.appendChild(block._el);
+-	path.pop(k); 
 -}
 
 =>main.js
@@ -213,7 +223,7 @@
 >wrap-block
 >bake-block
 
--function run() { wrap_block(page); bake_block(page); }
+-function run() { wrap_block(page); bake_block('page',page,0,[]); }
 -window.onload=run;
 
 )();
