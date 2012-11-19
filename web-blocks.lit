@@ -146,10 +146,11 @@
 -		Object.defineProperty(block,name, {
 -			enumerable: false,
 -			get: function() {
--				if(wrap_coordinate.depth--<0) {
--					debugger;
--				}
--				return f.call();
+-				if(block._cache[name]) return block._cache[name];
+-				if(wrap_coordinate.depth--<0) { debugger; }
+-				r=f.call(block);
+-				block._cache[name]=r;
+-				return r;
 -			}
 -		});
 -	} else {
@@ -163,6 +164,11 @@
 -wrap_coordinate.depth=300;
 
 -function wrap_block(block) {
+-	Object.defineProperty(block,'_cache', {
+-		value: {},
+-		enumerable: false,
+-	});
+
 -	wrap_coordinate(block,'left');
 -	wrap_coordinate(block,'top');
 -	wrap_coordinate(block,'right');
@@ -179,7 +185,7 @@
 -		enumerable: false,
 -		get: function() {
 -			var o=block._el.offsetTop;
--			var maximum=block.html?(block._el.offsetHeight-2):0;
+-			var maximum=block.html?(block._el.offsetHeight):0;
 -			each_block(this,function(b) {
 -				var y=b._el.offsetTop+b._el.offsetHeight-2-o;
 -				if(y>maximum) maximum=y;
@@ -192,7 +198,7 @@
 -		enumerable: false,
 -		get: function() {
 -			var o=block._el.offsetLeft;
--			var maximum=block.html?(block._el.offsetWidth-2):0;
+-			var maximum=block.html?(block._el.offsetWidth):0;
 -			each_block(this,function(b) {
 -				var x=b._el.offsetLeft+b._el.offsetWidth-2-o;
 -				if(x>maximum) maximum=x;
