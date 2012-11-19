@@ -128,7 +128,6 @@
 -function each_block(block,func) {
 -	for(var k in block) {
 -		if(k[0]=='_') continue;
--		if(block.__lookupGetter__(k)) continue;
 -		if(typeof block[k]!='object') continue;
 -		func(block[k],k);
 -	}
@@ -141,17 +140,27 @@
 
 =wrap-block
 -function wrap_coordinate(block,name) {
--	block['_'+name]=block[name];
--	block.__defineGetter__(name,function() {
--		if(wrap_coordinate.depth--<0) {
--			debugger;
--		}
--		var r=eval_coord(this['_'+name]);
--		return r;
--	});
+-	var val=block[name];
+-	if(typeof val == 'string') {
+-		var f=new Function('return ('+val+');');
+-		Object.defineProperty(block,name, {
+-			enumerable: false,
+-			get: function() {
+-				if(wrap_coordinate.depth--<0) {
+-					debugger;
+-				}
+-				return f.call();
+-			}
+-		});
+-	} else {
+-		Object.defineProperty(block,name, {
+-			value: val,
+-			enumerable: false,
+-		});
+-	}
 -}
 
--wrap_coordinate.depth=100;
+-wrap_coordinate.depth=300;
 
 -function wrap_block(block) {
 -	wrap_coordinate(block,'left');
@@ -159,26 +168,37 @@
 -	wrap_coordinate(block,'right');
 -	wrap_coordinate(block,'bottom');
 
--	block.__defineGetter__('contentHeight',function() {
--		var o=block._el.offsetTop;
--		var maximum=block.html?(block._el.offsetHeight-2):0;
--		each_block(this,function(b) {
--			var y=b._el.offsetTop+b._el.offsetHeight-2-o;
--			if(y>maximum) maximum=y;
+-	if(block.html) {
+-		Object.defineProperty(block,'html', {
+-			value: block.html,
+-			enumerable: false,
 -		});
--		return maximum;
--		
+-	}
+
+-	Object.defineProperty(block,'contentHeight', {
+-		enumerable: false,
+-		get: function() {
+-			var o=block._el.offsetTop;
+-			var maximum=block.html?(block._el.offsetHeight-2):0;
+-			each_block(this,function(b) {
+-				var y=b._el.offsetTop+b._el.offsetHeight-2-o;
+-				if(y>maximum) maximum=y;
+-			});
+-			return maximum;
+-		}
 -	});
 
--	block.__defineGetter__('contentWidth',function() {
--		var o=block._el.offsetLeft;
--		var maximum=block.html?(block._el.offsetWidth-2):0;
--		each_block(this,function(b) {
--			var x=b._el.offsetLeft+b._el.offsetWidth-2-o;
--			if(x>maximum) maximum=x;
--		});
+-	Object.defineProperty(block,'contentWidth', {
+-		enumerable: false,
+-		get: function() {
+-			var o=block._el.offsetLeft;
+-			var maximum=block.html?(block._el.offsetWidth-2):0;
+-			each_block(this,function(b) {
+-				var x=b._el.offsetLeft+b._el.offsetWidth-2-o;
+-				if(x>maximum) maximum=x;
+-			});
 -		return maximum;
--		
+-		}
 -	});
 
 -	each_block(block,wrap_block);
@@ -188,15 +208,6 @@
 		Evaluating coordinates
 
 	Converting relative coordinates into absolute
-
-=eval-coord
--function eval_coord(expr) {
--	if(typeof expr == 'string') {
--		return eval(expr);
--	} else {
--		return expr;
--	}
--}
 
 =bake-block
 -function bake_block(k,block,z,path) {
@@ -219,7 +230,6 @@
 =>main.js
 (function()
 >each-block
->eval-coord
 >wrap-block
 >bake-block
 
