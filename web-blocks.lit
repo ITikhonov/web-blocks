@@ -85,16 +85,21 @@
 	Position of block2 depends on block1 position and size.
 
 =compile-lisp
--function compile_lisp(s) {
+-function compile_lisp(s,deps) {
 -	if(s instanceof Array) {
 -		var f=lisp[s[0]];
 -		var a=[];
--		for(var i=1;i<s.length;i++) { a.push(compile_lisp(s[i])); }
+-		for(var i=1;i<s.length;i++) { a.push(compile_lisp(s[i],deps)); }
 -		return function() {
 -			var v=[];
--			for(var i in a) { v.push(a[i].apply(this)); }
--			return f.apply(this,v);
+-			for(var i in a) { v.push(a[i].apply(null)); }
+-			return f.apply(null,v);
 -		}
+-	}
+-
+-	if(typeof(s)!='number') {
+-		deps.push(s);
+-		return (function() { return eval(s); });
 -	}
 -	return (function() { return s; });
 -}
@@ -184,24 +189,73 @@
 	For convenience relative coordinates are given as sexpr in
 	string, so we parse it before processing.
 
+	Also we extract all 
+
 =parse-block
 -function parse_block(b) {
--	each_block(b,parse_block)
--	b.top=parse_sexpr(b.top);
--	b.left=parse_sexpr(b.left);
--	b.right=parse_sexpr(b.right);
--	b.bottom=parse_sexpr(b.bottom);
+-	each_block(b,parse_block);
 
--		
+-	b._top=parse_sexpr(b.top);
+-	b._left=parse_sexpr(b.left);
+-	b._right=parse_sexpr(b.right);
+-	b._bottom=parse_sexpr(b.bottom);
+
+-	b.top=undefined;
+-	b.left=undefined;
+-	b.right=undefined;
+-	b.bottom=undefined;
+
+
+-	b._deps={top:[],left:[],right:[],bottom:[]}
+
+-	b._func={
+-		top:compile_lisp(b._top,b._deps.top),
+-		left:compile_lisp(b._left,b._deps.left),
+-		right:compile_lisp(b._right,b._deps.right),
+-		bottom:compile_lisp(b._bottom,b._deps.bottom),
+-	}
 
 -}
 
-		Evaluating coordinates
+		Resolving coordinates
 
 	Converting relative coordinates into absolute.
 
-=eval_block
-function
+	We scan each coordinate:
+
+	0. if already has a value, skip
+	1. otherwise remove from dependencies all values
+		which are already calculated.
+	2. if it has no dependencies, calculate value
+	3. repeat
+
+=resolve-block
+-function resolve_coord(b,f) {
+-	if(b[f]==undefined) {
+-		for(var i=0;i<b._deps[f].length;) {
+-			var x=b._deps[f][i];
+-			if(eval(x)!=undefined) {
+-				b._deps[f].splice(i,1);
+-				continue;
+-			}
+-			i++;
+-		}
+-		if(b._deps[f].length==0) {
+-			b[f]=b._func[f]();
+-		}
+-	}
+-	return b._deps[f].length;
+-}
+
+-function resolve_block(b) {
+-	var d=0;
+-	each_block(b,function(b) { d+=resolve_block(b); });
+-	d+=resolve_coord(b,'left');
+-	d+=resolve_coord(b,'top');
+-	d+=resolve_coord(b,'right');
+-	d+=resolve_coord(b,'bottom');
+-	return d;
+-}
 
 
 
@@ -237,10 +291,15 @@ function
 
 >each-block
 >parse-block
+>resolve-block
 >bake-block
 
 -function bake() { bake_block('page',page,0,[]); }
--function run() { parse_block(page); bake(); }
+-function run() {
+-	parse_block(page);
+-	for(var i=0;i<100;i++) { if(resolve_block(page)==0) break; }
+-	bake();
+-}
 -window.onload=run;
 
 )();
