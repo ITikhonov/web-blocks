@@ -126,11 +126,14 @@
 
 =each-block
 -function each_block(block,func) {
+-	var n=0;
 -	for(var k in block) {
 -		if(k[0]=='_') continue;
 -		if(typeof block[k]!='object') continue;
 -		func(block[k],k);
+-		n++;
 -	}
+-	return n;
 -}
 
 		Wrap coordinates
@@ -138,34 +141,29 @@
 	Retrieving left/right/top/bottom should try to evaluate it's value,
 	so we define getters.
 
+	To correctly find out block contentWidth/Height we need to have at least
+	one of height or width set for that block.
+
+	If neither one can be determined, html engine will tell us.
+
 =wrap-block
 -function wrap_coordinate(block,name) {
 -	var val=block[name];
 -	if(typeof val == 'string') {
--		var f=new Function('_','return ('+val+');');
--		block['_'+name]=val;
--		Object.defineProperty(block,name, {
--			enumerable: false,
--			get: function() {
--				if(block._cache[name]) return block._cache[name];
--				if(wrap_coordinate.depth--<0) { debugger; }
--				r=f.call(block,block.parent);
--				block._cache[name]=r;
--				return r;
--			}
--		});
--	} else {
--		Object.defineProperty(block,name, {
--			value: val,
--			enumerable: false,
--		});
+-		block._func[name]=new Function('_','return ('+val+');');
+-		val=NaN;
 -	}
+-	Object.defineProperty(block,name, {
+-		value: val,
+-		enumerable: false,
+-		writable: true
+-	});
 -}
 
 -wrap_coordinate.depth=300;
 
 -function wrap_block(block,parent) {
--	Object.defineProperty(block,'_cache', {
+-	Object.defineProperty(block,'_func', {
 -		value: {},
 -		enumerable: false,
 -	});
@@ -188,29 +186,15 @@
 -	}
 
 -	Object.defineProperty(block,'contentHeight', {
+-		value: NaN,
 -		enumerable: false,
--		get: function() {
--			var o=block._el.offsetTop;
--			var maximum=block.html?(block._el.offsetHeight):0;
--			each_block(this,function(b) {
--				var y=b._el.offsetTop+b._el.offsetHeight-2-o;
--				if(y>maximum) maximum=y;
--			});
--			return maximum;
--		}
+-		writable: true
 -	});
 
 -	Object.defineProperty(block,'contentWidth', {
+-		value: NaN,
 -		enumerable: false,
--		get: function() {
--			var o=block._el.offsetLeft;
--			var maximum=block.html?(block._el.offsetWidth):0;
--			each_block(this,function(b) {
--				var x=b._el.offsetLeft+b._el.offsetWidth-2-o;
--				if(x>maximum) maximum=x;
--			});
--		return maximum;
--		}
+-		writable: true
 -	});
 
 -	each_block(block,function(b) { wrap_block(b,block); });
@@ -224,20 +208,73 @@
 =bake-block
 -function bake_block(k,block,z,path) {
 -	path.push(k);
--	if(!block._el) {
+
+-	var n=each_block(block,function(b,k) {  bake_block(k,b,z+1,path); });
+-	if(n && block.html) throw ("Can't have sub-blocks and html together in "+path.join('.'));
+
+-	if(isNaN(block.top)) { block.top=block._func.top.call(block,block.parent); }
+-	if(isNaN(block.left)) { block.left=block._func.left.call(block,block.parent); }
+-	if(isNaN(block.right)) { block.right=block._func.right.call(block,block.parent); }
+-	if(isNaN(block.bottom)) { block.bottom=block._func.bottom.call(block,block.parent); }
+
+
+-	function make_el() {
 -		block._el=document.createElement('div');
+-		block._el.className='apos';
+-		block._el.style.zIndex=z;
+-		block._el.innerHTML	=block.html?block.html:'';
+-		block._el.id=path.join('.');
 -	}
--	block._el.className='apos';
--	block._el.style.zIndex=z;
--	block._el.innerHTML	=block.html?block.html:'';
--	block._el.id=path.join('.');
--	document.body.appendChild(block._el);
--	each_block(block,function(b,k) {  bake_block(k,b,z+1,path); });
--	if(block.id) block._el.id=block.id;
--	block._el.style.top	=block.top;
--	block._el.style.left	=block.left;
--	block._el.style.width	=block.right - block.left;
--	block._el.style.height	=block.bottom - block.top;
+
+-	if(block.html) {
+-		if(!block._el) {
+-			if(!isNaN(block.bottom - block.top)) {
+-				make_el();
+-				block._el.style.top	=block.top;
+-				block._el.style.height	=block.bottom - block.top;
+-				document.body.appendChild(block._el);
+-				block.contentWidth = block._el.offsetWidth;
+-				block.contentHeight = block._el.offsetHeight;
+-				if(block._log) console.log(path.join('.'),
+-					block._el.offsetWidth, block._el.offsetHeight,
+-					block.contentWidth,block.contentHeight);
+-			} else if(!isNaN(block.right - block.left)) {
+-				make_el();
+-				block._el.style.left	=block.left;
+-				block._el.style.width	=block.right - block.left;
+-				document.body.appendChild(block._el);
+-				block.contentWidth = block._el.offsetWidth;
+-				block.contentHeight = block._el.offsetHeight;
+-				if(block._log) console.log(path.join('.'),
+-					block._el.offsetWidth, block._el.offsetHeight,
+-					block.contentWidth,block.contentHeight);
+-			}
+-		}
+-
+-		if(block._el) {
+-			if(!isNaN(block.top)) {
+-				block._el.style.top	=block.top;
+-				if(!isNaN(block.bottom)) {
+-					block._el.style.height	=block.bottom - block.top;
+-				}
+-			}
+-			if(!isNaN(block.left)) {
+-				block._el.style.left	=block.left;
+-				if(!isNaN(block.right)) {
+-					block._el.style.width	=block.right - block.left;
+-				}
+-			} 
+-		}
+-	} else {
+-		var mx=0,my=0;
+-		each_block(block,function(b) {
+-			mx=Math.max(mx,b.right);
+-			my=Math.max(my,b.bottom);
+-		});
+-		block.contentWidth = mx-block.left;
+-		block.contentHeight = my-block.top;
+-	}
+
 -	path.pop(k); 
 -}
 
@@ -248,7 +285,7 @@
 >bake-block
 
 -function bake() { bake_block('page',page,0,[]); }
--function run() { wrap_block(page); bake(); }
+-function run() { wrap_block(page); for(var i=0;i<20;i++) bake(); }
 -window.onload=run;
 
 )();
