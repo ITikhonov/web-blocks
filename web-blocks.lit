@@ -224,7 +224,9 @@
 =bake-block
 -function bake_block(k,block,z,path) {
 -	path.push(k);
--	block._el=document.createElement('div');
+-	if(!block._el) {
+-		block._el=document.createElement('div');
+-	}
 -	block._el.className='apos';
 -	block._el.style.zIndex=z;
 -	block._el.innerHTML	=block.html?block.html:'';
@@ -245,7 +247,8 @@
 >wrap-block
 >bake-block
 
--function run() { wrap_block(page); bake_block('page',page,0,[]); }
+-function bake() { bake_block('page',page,0,[]); }
+-function run() { wrap_block(page); bake(); }
 -window.onload=run;
 
 )();
