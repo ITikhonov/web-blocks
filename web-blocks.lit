@@ -142,13 +142,14 @@
 -function wrap_coordinate(block,name) {
 -	var val=block[name];
 -	if(typeof val == 'string') {
--		var f=new Function('return ('+val+');');
+-		var f=new Function('_','return ('+val+');');
+-		block['_'+name]=val;
 -		Object.defineProperty(block,name, {
 -			enumerable: false,
 -			get: function() {
 -				if(block._cache[name]) return block._cache[name];
 -				if(wrap_coordinate.depth--<0) { debugger; }
--				r=f.call(block);
+-				r=f.call(block,block.parent);
 -				block._cache[name]=r;
 -				return r;
 -			}
@@ -163,9 +164,14 @@
 
 -wrap_coordinate.depth=300;
 
--function wrap_block(block) {
+-function wrap_block(block,parent) {
 -	Object.defineProperty(block,'_cache', {
 -		value: {},
+-		enumerable: false,
+-	});
+
+-	Object.defineProperty(block,'parent', {
+-		value: parent,
 -		enumerable: false,
 -	});
 
@@ -207,7 +213,7 @@
 -		}
 -	});
 
--	each_block(block,wrap_block);
+-	each_block(block,function(b) { wrap_block(b,block); });
 -}
 
 
