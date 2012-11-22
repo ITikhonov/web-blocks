@@ -167,7 +167,7 @@
 -		page.block1.block2 = {
 -			top:	'(+ page.block1.top 20)',
 -			left:	'(+ page.block1.left 30)',
--			right:	'(+ page.block1.block2.right this.contentWidth)',
+-			right:	'(+ page.block1.block2.left this.contentWidth)',
 -			bottom:	'(+ page.block1.block2.top this.contentHeight)',
 -			html:	'block2 Hello, world!'
 -		}
@@ -191,14 +191,16 @@
 
 
 -function walk_block(f,k,block,z,path) {
+-	var d=0;
 -	path.push(k);
--	var n=each_block(block,function(b,k) {  walk_block(f,k,b,z+1,path); });
--	f(block,path,z);
+-	var n=each_block(block,function(b,k) {  d+=walk_block(f,k,b,z+1,path); });
+-	d+=f(block,path,z);
 -	path.pop(k); 
+-	return d;
 -}
 
 -function walk_all(f,k,block) {
--	walk_block(f,k,block,0,[]);
+-	return walk_block(f,k,block,0,[]);
 -}
 
 
@@ -264,16 +266,28 @@
 -			b[f]=b._func[f].call(b);
 -		}
 -	}
--	return b._deps[f].length;
+-	return b._deps[f].length?1:0;
 -}
 
--function resolve_block(b) {
+-function resolve_block(b,path,z) {
 -	var d=0;
--	each_block(b,function(b) { d+=resolve_block(b); });
 -	d+=resolve_coord(b,'left');
 -	d+=resolve_coord(b,'top');
 -	d+=resolve_coord(b,'right');
 -	d+=resolve_coord(b,'bottom');
+
+-	var cd=0;
+-	if(b._deps.top.content) cd++;
+-	if(b._deps.left.content) cd++;
+-	if(b._deps.right.content) cd++;
+-	if(b._deps.bottom.content) cd++;
+
+-	if(d && cd==d) {
+-		render_html(b,path,z);
+-		b.contentWidth=b._el.scrollWidth;
+-		b.contentHeight=b._el.scrollHeight;
+-	}
+
 -	return d;
 -}
 
@@ -317,7 +331,8 @@
 -function bake() { walk_all(render_html,'page',page); }
 -function run() {
 -	parse_block(page);
--	for(var i=0;i<100;i++) { if(resolve_block(page)==0) break; }
+-	var i;
+-	for(i=0;i<100;i++) { if(walk_all(resolve_block,'page',page)==0) break; }
 -	bake();
 -}
 -window.onload=run;
