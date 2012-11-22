@@ -25,7 +25,10 @@
 
 =lisp-math
 -var lisp={
--	'+':function(a,b) { return a+b; }
+-	'+':function() { var s=0; for(i in arguments) s+=arguments[i]; return s; },
+-	'-':function() { var s=arguments[0]; for(var i=1;i<arguments.length;i++) s-=arguments[i]; return s; },
+-	'*':function(a,b) { return a*b; },
+-	'/':function(a,b) { return a/b; }
 -}
 
 		Block coordinates
@@ -190,17 +193,17 @@
 -}
 
 
--function walk_block(f,k,block,z,path) {
+-function walk_block(f,k,block,z,path,parent) {
 -	var d=0;
 -	path.push(k);
--	var n=each_block(block,function(b,k) {  d+=walk_block(f,k,b,z+1,path); });
--	d+=f(block,path,z);
+-	var n=each_block(block,function(b,k) {  d+=walk_block(f,k,b,z+1,path,block); });
+-	d+=f(block,path,z,parent);
 -	path.pop(k); 
 -	return d;
 -}
 
 -function walk_all(f,k,block) {
--	return walk_block(f,k,block,0,[]);
+-	return walk_block(f,k,block,0,[],null);
 -}
 
 
@@ -210,9 +213,7 @@
 	string, so we parse it before processing.
 
 =parse-block
--function parse_block(b) {
--	each_block(b,parse_block);
-
+-function parse_block(b,_,_,parent) {
 -	b._top=parse_sexpr(b.top);
 -	b._left=parse_sexpr(b.left);
 -	b._right=parse_sexpr(b.right);
@@ -223,6 +224,7 @@
 -	b.right=undefined;
 -	b.bottom=undefined;
 
+-	b._=parent;
 
 -	b._deps={top:[],left:[],right:[],bottom:[]}
 
@@ -248,7 +250,7 @@
 	3. repeat
 
 =resolve-block
--function _eval(s) {
+-function _eval(s,_) {
 -	return eval(s);
 -}
 
@@ -328,9 +330,10 @@
 >resolve-block
 >bake-block
 
+-function parse() { walk_all(parse_block,'page',page); }
 -function bake() { walk_all(render_html,'page',page); }
 -function run() {
--	parse_block(page);
+-	parse();
 -	var i;
 -	for(i=0;i<100;i++) { if(walk_all(resolve_block,'page',page)==0) break; }
 -	bake();
