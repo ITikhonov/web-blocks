@@ -25,10 +25,21 @@
 
 =lisp-math
 -var lisp={
--	'+':function() { var s=0; for(i in arguments) s+=arguments[i]; return s; },
+-	'+':function() { var s=arguments[0]; for(var i=1;i<arguments.length;i++) s+=arguments[i]; return s; },
 -	'-':function() { var s=arguments[0]; for(var i=1;i<arguments.length;i++) s-=arguments[i]; return s; },
--	'*':function(a,b) { return a*b; },
--	'/':function(a,b) { return a/b; }
+-	'*':function() { var s=arguments[0]; for(var i=1;i<arguments.length;i++) s*=arguments[i]; return s; },
+-	'?':function(a,b,c) { return a?b:c; },
+-	'%':function(a,b) { return a%b; },
+-	'/':function(a,b) { return a/b; },
+
+-	'max':Math.max,
+-	'min':Math.min,
+
+-	'<':function(a,b) { return a<b; },
+-	'>':function(a,b) { return a>b; },
+-	'=':function(a,b) { return a==b; },
+-
+-	'get':function(a,b) { return a[b]; },
 -}
 
 		Block coordinates
@@ -101,6 +112,11 @@
 -	}
 -
 -	if(typeof(s)!='number') {
+-		var dots=s.match(/^\.+/);
+-		if(dots) {
+-			dots=dots[0].length;
+-			s='this.'+(new Array(dots).join('_.'))+s.slice(dots);
+-		}
 -		deps.push(s);
 -		if(s=='this.contentHeight' || s=='this.contentWidth') {
 -			deps.content=true;
@@ -317,6 +333,22 @@
 -	}
 -}
 
+		Report unresolved
+
+=report-unresolved
+-function report_unresolved_field(b,f,name) {
+-	if(b[f]==undefined) {
+-		console.log('unresolved',name+'.'+f,'because of',b._deps[f]);
+-	}
+-}
+
+-function report_unresolved(block,path) {
+-	name=path.join('.');
+-	report_unresolved_field(block,'top',name);
+-	report_unresolved_field(block,'left',name);
+-	report_unresolved_field(block,'right',name);
+-	report_unresolved_field(block,'bottom',name);
+-}
 
 =>main.js
 (function()
@@ -329,13 +361,17 @@
 >parse-block
 >resolve-block
 >bake-block
+>report-unresolved
 
 -function parse() { walk_all(parse_block,'page',page); }
 -function bake() { walk_all(render_html,'page',page); }
 -function run() {
 -	parse();
 -	var i;
--	for(i=0;i<100;i++) { if(walk_all(resolve_block,'page',page)==0) break; }
+-	for(i=0;i<200;i++) { if(walk_all(resolve_block,'page',page)==0) break; }
+-	if(i==200) {
+-		walk_all(report_unresolved,'page',page);
+-	}
 -	bake();
 -}
 -window.onload=run;
