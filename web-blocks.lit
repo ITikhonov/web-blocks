@@ -92,13 +92,16 @@
 -		for(var i=1;i<s.length;i++) { a.push(compile_lisp(s[i],deps)); }
 -		return function() {
 -			var v=[];
--			for(var i in a) { v.push(a[i].apply(null)); }
--			return f.apply(null,v);
+-			for(var i in a) { v.push(a[i].apply(this)); }
+-			return f.apply(this,v);
 -		}
 -	}
 -
 -	if(typeof(s)!='number') {
 -		deps.push(s);
+-		if(s=='this.contentHeight' || s=='this.contentWidth') {
+-			deps.content=true;
+-		}
 -		return (function() { return eval(s); });
 -	}
 -	return (function() { return s; });
@@ -118,20 +121,18 @@
 
 -		page.block1 = {
 -			top:	'page.top',
--			left:	'page.left + 20',
--			bottom:	'page.block1.top + 100',
--			right:	'page.block1.left + 120',
+-			left:	'(+ page.left 20)',
+-			bottom:	'(+ page.block1.top 100)',
+-			right:	'(+ page.block1.left 120)',
 -		}
 
 -		page.block2 = {
 -			top:	'page.block1.bottom',
 -			left:	'page.block1.right',
--			bottom:	'page.block2.top + 50',
--			right:	'page.block2.left + 75',
+-			bottom:	'(+ page.block2.top 100)',
+-			right:	'(+ page.block2.left 105)',
 -			html:	'Hello, world!'
 -		}
-
-
 
 
 
@@ -140,33 +141,35 @@
 	For some blocks their content is used to determine bottom
 	and right coordinates.
 
-	For each block content.bottom and content.right specifies
-	maximum bottom and right coordinates of blocks it includes.
+	For each block contentHeight and contentWidth specifies
+	sizes for html rendered content.
+
+	If all unresolved block' coordinates depend on this block's
+	contentHeight/Width, we render block and sample contentWidth/Height
+	from html content.
 
 =test-block-content
 -		page = { 
 -			top:		20,
 -			left:		20,
--			bottom:		'page.contentBottom',
+-			bottom:		700,
 -			right:		700,
 -		}
 
 -		page.block1 = {
--			id: 'page.block1',
--			top:	'page.top + 20',
--			left:	'page.left + 20',
--			bottom:	'page.block1.contentBottom + 20',
--			right:	'page.block1.contentRight + 30',
+-			top:	'(+ page.top 20)',
+-			left:	'(+ page.left 20)',
+-			right:	'(+ this.left 30)',
+-			bottom:	'(+ this.top (+ this.contentHeight 20))',
+-			html:	'block1 Hello, world!'
 -		}
 
 -		page.block1.block2 = {
--			id: 'page.block1.block2',
--			top:	'page.block1.top + 20',
--			left:	'page.block1.left + 30',
-
-	No bottom and right coordinates - will size it by content.
-
--			html:	'Hello, world!'
+-			top:	'(+ page.block1.top 20)',
+-			left:	'(+ page.block1.left 30)',
+-			right:	'(+ page.block1.block2.right this.contentWidth)',
+-			bottom:	'(+ page.block1.block2.top this.contentHeight)',
+-			html:	'block2 Hello, world!'
 -		}
 
 		Walking
@@ -179,17 +182,30 @@
 -		if(k=='left') continue;
 -		if(k=='right') continue;
 -		if(k=='bottom') continue;
+-		if(k=='contentWidth') continue;
+-		if(k=='contentHeight') continue;
 -		if(typeof block[k]!='object') continue;
 -		func(block[k],k);
 -	}
 -}
 
+
+-function walk_block(f,k,block,z,path) {
+-	path.push(k);
+-	var n=each_block(block,function(b,k) {  walk_block(f,k,b,z+1,path); });
+-	f(block,path,z);
+-	path.pop(k); 
+-}
+
+-function walk_all(f,k,block) {
+-	walk_block(f,k,block,0,[]);
+-}
+
+
 		Parsing
 
 	For convenience relative coordinates are given as sexpr in
 	string, so we parse it before processing.
-
-	Also we extract all 
 
 =parse-block
 -function parse_block(b) {
@@ -230,18 +246,22 @@
 	3. repeat
 
 =resolve-block
+-function _eval(s) {
+-	return eval(s);
+-}
+
 -function resolve_coord(b,f) {
 -	if(b[f]==undefined) {
 -		for(var i=0;i<b._deps[f].length;) {
 -			var x=b._deps[f][i];
--			if(eval(x)!=undefined) {
+-			if(_eval.call(b,x)!=undefined) {
 -				b._deps[f].splice(i,1);
 -				continue;
 -			}
 -			i++;
 -		}
 -		if(b._deps[f].length==0) {
--			b[f]=b._func[f]();
+-			b[f]=b._func[f].call(b);
 -		}
 -	}
 -	return b._deps[f].length;
@@ -262,12 +282,10 @@
 		Generate HTML
 
 =bake-block
--function bake_block(k,block,z,path) {
--	path.push(k);
-
--	var n=each_block(block,function(b,k) {  bake_block(k,b,z+1,path); });
-
--	block._el=document.createElement('div');
+-function render_html(block,path,z) {
+-	if(!block._el) {
+-		block._el=document.createElement('div');
+-	}
 -	block._el.className='apos';
 -	block._el.style.zIndex=z;
 -	block._el.innerHTML	=block.html?block.html:'';
@@ -277,10 +295,12 @@
 -	block._el.style.height	=block.bottom - block.top;
 -	block._el.style.left	=block.left;
 -	block._el.style.width	=block.right - block.left;
--	document.body.appendChild(block._el);
 
--	path.pop(k); 
+-	if(!block._el.parentNode) {
+-		document.body.appendChild(block._el);
+-	}
 -}
+
 
 =>main.js
 (function()
@@ -294,7 +314,7 @@
 >resolve-block
 >bake-block
 
--function bake() { bake_block('page',page,0,[]); }
+-function bake() { walk_all(render_html,'page',page); }
 -function run() {
 -	parse_block(page);
 -	for(var i=0;i<100;i++) { if(resolve_block(page)==0) break; }
