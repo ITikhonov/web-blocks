@@ -38,8 +38,6 @@
 -	'<':function(a,b) { return a<b; },
 -	'>':function(a,b) { return a>b; },
 -	'=':function(a,b) { return a==b; },
--
--	'get':function(a,b) { return a[b]; },
 -}
 
 		Block coordinates
