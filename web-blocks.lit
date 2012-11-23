@@ -1,3 +1,68 @@
+
+		Cascading Style Sheets
+
+	CSS was a quite breakthrough from using &lt;font&gt; tag
+	back in 1996. But industry pushes for more and more elaborate
+	designs and layouts, well above CSS abilities.
+
+	How many times CSS was damned while hacking 4-column layout
+	with floats? Or how many times you put a senseless tag just
+	to be able to style things the way needed?
+
+	One of the reasons for CSS to separate presentation from
+	information. It did it's job quite well for text styling,
+	but failed to provide universal layout mechanism.
+
+	Seems like 15 years from it's invention CSS commitete
+	gave up and resorted to ad-hoc layout specification
+	modules, like tables and columns.
+
+	Still, you have to specify half of design with HTML, half
+	with CSS.
+
+	Is this problem solvable at all? Can presentation and data
+	be truly separated?
+
+		Visual formatting model
+
+	Perhaps, weakest point of CSS is a visual formatting model,
+	the thingy which decides where on screen guts of your &lt;div&gt;
+	will be.
+
+	Quite complex mechanism described by 115 kilobyte specification,
+	not including special layouts like tables. Probably, the chief
+	reason of layout incompabilities between browsers is this
+	complexity.
+
+	And yet, CSS is quite limiting in what you can actually archive
+	with it without resorting to hacks.
+
+		What's the deal?
+
+define 'blocks'
+
+	In the very end of any layout mechanism, all visual blocks on
+	page end up being defined by four numbers: top, bottom, left
+	and right.
+
+=test-block-basic
+-		page = { 
+-			top:		20,
+-			left:		30, 
+-			bottom:		400, 
+-			right:		700, 
+-		}
+
+-		page.block1 = { 
+-			top:		30,
+-			left:		50, 
+-			bottom:		50, 
+-			right:		80, 
+-		}
+
+
+
+
 		Lisp parser
 
 =lisp-parser
@@ -47,22 +112,6 @@
 	page.
 
 	So at the very core each block looks like:
-
-=test-block-basic
--		page = { 
--			top:		20,
--			left:		30, 
--			bottom:		400, 
--			right:		700, 
--		}
-
--		page.block1 = { 
--			top:		30,
--			left:		50, 
--			bottom:		50, 
--			right:		80, 
--		}
-
 
 	But in real life block coordinates can't be defined
 	directly, as they are function of content (text size)
