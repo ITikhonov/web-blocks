@@ -349,7 +349,7 @@
 -}
 
 =>main.js
-(function()
+-(function() {
 
 >lisp-parser
 >lisp-math
@@ -374,7 +374,7 @@
 -}
 -window.onload=run;
 
-)();
+-})();
 
 =test-html-pre
 -<html><head><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><style>.apos{position:absolute;margin:0;padding:0;border:1px solid black;overflow:hidden}</style></head><script>
