@@ -26,6 +26,8 @@ that's not question i am going to answer
 
 		Visual formatting model
 
+limit "weakest point" to block-level elements
+
 	Perhaps, weakest point of CSS is a visual formatting model,
 	the thingy which decides where on screen guts of your &lt;div&gt;
 	will be.
@@ -38,12 +40,14 @@ that's not question i am going to answer
 	And yet, CSS is quite limiting in what you can actually archive
 	with it without resorting to hacks.
 
-		What's the deal?
+		The Question
+
+	Can there be a way to make layouts without it being a tough
+	black art?
+
+		What the heck is layout?
 
 define 'blocks'
-
-	So let's try to figure out is it really that hard to lay out
-	blocks?
 
 very unclear paragraph follows
 
@@ -431,6 +435,10 @@ note, that bottom and right do not have css meaning.
 -	d+=resolve_coord(b,'top');
 -	d+=resolve_coord(b,'right');
 -	d+=resolve_coord(b,'bottom');
+
+	Sometimes, the only way to resolve block
+	is to compute it's content (like when
+	right and bottom depend on content).
 
 -	var cd=0;
 -	if(b._deps.top.content) cd++;
