@@ -45,26 +45,22 @@ define 'blocks'
 	So let's try to figure out is it really that hard to lay out
 	blocks?
 
+very unclear paragraph follows
+
 	In the very end of any layout mechanism, all visual blocks on
 	page end up being defined by four numbers: top, bottom, left
-	and right.
+	and right. They are distance from absolute zero.
 
 note, that bottom and right do not have css meaning.
 
-	<object data="fig1.svg" type="image/svg+xml"></object> 
-=>fig1.svg
+	<object data="basic.svg" type="image/svg+xml"></object> 
+
+=>basic.svg
 -<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="300" width="300">
 >	arrows
 >	browser-mockup
--	<rect x="60" y="50" width="200" height="150" style="fill:none;stroke:grey;stroke-width:1;"/>
--	<line x1="80" y1="22" x2="80" y2="48" style="stroke: black;" marker-end="url(#arrowe)"/>
--	<text x="85" y="40">top</text>
--	<line x1="240" y1="22" x2="240" y2="198" style="stroke: black;" marker-end="url(#arrowe)"/>
--	<text x="235" y="125" text-anchor="end">bottom</text>
--	<line x1="22" y1="80" x2="59" y2="80" style="stroke: black;" marker-end="url(#arrowe)"/>
--	<text x="40" y="75" text-anchor="middle">left</text>
--	<line x1="22" y1="160" x2="259" y2="160" style="stroke: black;" marker-end="url(#arrowe)"/>
--	<text x="150" y="155" text-anchor="middle">right</text>
+>	svg-page
+>	svg-block1
 -</svg>
 
 	In Javascript notation, two blocks, 'page' and 'page.block1':
@@ -87,6 +83,8 @@ note, that bottom and right do not have css meaning.
 -		}
 >test-html-post
 
+		Relative
+
 	But in real life block coordinates can't be defined
 	directly, as they are a function of content (text size,
 	font) or environment (viewport size).
@@ -94,7 +92,24 @@ note, that bottom and right do not have css meaning.
 	So block coordinates are mostly specified in terms of
 	relation to other blocks.
 
-insert image with blocks
+	<object data="relative.svg" type="image/svg+xml"></object> 
+
+=>relative.svg
+-<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="300" width="400">
+>	arrows
+>	browser-mockup
+>	svg-page
+>	svg-block1
+
+-	<rect x="230" y="210" width="80" height="50" style="fill:none;stroke:grey;stroke-width:1;"/>
+-	<text x="232" y="220" style="fill:grey;font-size:10px">block2</text>
+
+-	<line x1="80" y1="50" x2="80" y2="208" style="stroke: red;" marker-end="url(#arrowe)"/>
+-	<line x1="240" y1="200" x2="240" y2="258" style="stroke: red;" marker-end="url(#arrowe)"/>
+- 	<line x1="61" y1="80" x2="228" y2="80" style="stroke: red;" marker-end="url(#arrowe)"/>
+- 	<line x1="261" y1="160" x2="309" y2="160" style="stroke: red;" marker-end="url(#arrowe)"/>
+
+-</svg>
 
 =>test/relative.html
 
@@ -114,16 +129,16 @@ insert image with blocks
 -		}
 
 -		page.block2 = {
--			top:	'page.block1.bottom',
--			left:	'page.block1.right',
+-			top:	'(+ page.block1.bottom 5)',
+-			left:	'(- page.block1.right 5)',
 -			bottom:	'(+ page.block2.top 50)',
 -			right:	'(+ page.block2.left 75)',
 -		}
 >test-html-post
 
-	Position of block2 depends on block1 position and size.
-
-
+	Right edge of page block is defined relative to viewport
+	width and so on. Position of block2 depends on block1 position
+	and size.
 
 
 		Lisp parser
@@ -482,4 +497,20 @@ insert image with blocks
 -		<line x1="5" y1="5" x2="0" y2="10" style="stroke-width:1;stroke: black;"/>
 -	</marker>
 -</defs>
+
+=svg-page
+-	<rect x="40" y="35" width="400" height="350" style="fill:none;stroke:grey;stroke-width:1;"/>
+-	<text x="42" y="45" style="fill:grey;font-size:10px">page</text>
+
+=svg-block1
+-	<rect x="60" y="50" width="200" height="150" style="fill:none;stroke:grey;stroke-width:1;"/>
+-	<text x="62" y="60" style="fill:grey;font-size:10px">block1</text>
+-	<line x1="80" y1="22" x2="80" y2="48" style="stroke: black;" marker-end="url(#arrowe)"/>
+-	<text x="85" y="40">top</text>
+-	<line x1="240" y1="22" x2="240" y2="198" style="stroke: black;" marker-end="url(#arrowe)"/>
+-	<text x="235" y="125" text-anchor="end">bottom</text>
+-	<line x1="22" y1="80" x2="59" y2="80" style="stroke: black;" marker-end="url(#arrowe)"/>
+-	<text x="40" y="75" text-anchor="middle">left</text>
+-	<line x1="22" y1="160" x2="259" y2="160" style="stroke: black;" marker-end="url(#arrowe)"/>
+-	<text x="150" y="155" text-anchor="middle">right</text>
 
