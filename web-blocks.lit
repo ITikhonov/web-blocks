@@ -172,6 +172,40 @@ note, that bottom and right do not have css meaning.
 	width and so on. Position of block2 depends on block1 position
 	and size.
 
+		Block content size
+
+	For some blocks their content is used to determine bottom
+	and right coordinates.
+
+=>test/content.html
+
+>test-html-pre
+
+-		page = { 
+-			top:		20,
+-			left:		20,
+-			bottom:		700,
+-			right:		700,
+-		}
+
+-		page.block1 = {
+-			top:	'(+ page.top 20)',
+-			left:	'(+ page.left 20)',
+-			right:	'(+ page.block1.left 30)',
+-			bottom:	'(+ page.block1.top (+ page.block1.contentHeight 20))',
+-			html:	'block1 Hello, world!'
+-		}
+
+-		page.block1.block2 = {
+-			top:	'(+ page.block1.top 20)',
+-			left:	'(+ page.block1.left 30)',
+-			right:	'(+ page.block1.block2.left page.block1.block2.contentWidth)',
+-			bottom:	'(+ page.block1.block2.top page.block1.block2.contentHeight)',
+-			html:	'block2 Hello, world!'
+-		}
+
+>test-html-post
+
 
 		Lisp parser
 
@@ -242,71 +276,6 @@ note, that bottom and right do not have css meaning.
 -	}
 -	return (function() { return s; });
 -}
-
-		Block content
-
-	Empty blocks are almost useless.
-
-=test-block-html
--		page = { 
--			top:		20,
--			left:		20, 
--			bottom:		1010, 
--			right:		700, 
--		}
-
--		page.block1 = {
--			top:	'page.top',
--			left:	'(+ page.left 20)',
--			bottom:	'(+ page.block1.top 100)',
--			right:	'(+ page.block1.left 120)',
--		}
-
--		page.block2 = {
--			top:	'page.block1.bottom',
--			left:	'page.block1.right',
--			bottom:	'(+ page.block2.top 100)',
--			right:	'(+ page.block2.left 105)',
--			html:	'Hello, world!'
--		}
-
-
-
-		Block content size
-
-	For some blocks their content is used to determine bottom
-	and right coordinates.
-
-	For each block contentHeight and contentWidth specifies
-	sizes for html rendered content.
-
-	If all unresolved block' coordinates depend on this block's
-	contentHeight/Width, we render block and sample contentWidth/Height
-	from html content.
-
-=test-block-content
--		page = { 
--			top:		20,
--			left:		20,
--			bottom:		700,
--			right:		700,
--		}
-
--		page.block1 = {
--			top:	'(+ page.top 20)',
--			left:	'(+ page.left 20)',
--			right:	'(+ this.left 30)',
--			bottom:	'(+ this.top (+ this.contentHeight 20))',
--			html:	'block1 Hello, world!'
--		}
-
--		page.block1.block2 = {
--			top:	'(+ page.block1.top 20)',
--			left:	'(+ page.block1.left 30)',
--			right:	'(+ page.block1.block2.left this.contentWidth)',
--			bottom:	'(+ page.block1.block2.top this.contentHeight)',
--			html:	'block2 Hello, world!'
--		}
 
 		Walking
 
@@ -502,18 +471,7 @@ note, that bottom and right do not have css meaning.
 -</script><script src="../main.js"></script><body></body></html>
 
 
-
-
-=>test/html.html
->test-html-pre
->test-block-html
->test-html-post
- 
-=>test/content.html
->test-html-pre
->test-block-content
->test-html-post
- 
+		SVG utilities
 
 =browser-mockup
 -<text x="47" y="5" text-anchor="start">http://brokestream.com/|</text>
