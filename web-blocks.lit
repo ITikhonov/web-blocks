@@ -206,6 +206,60 @@ note, that bottom and right do not have css meaning.
 
 >test-html-post
 
+		Typical layouts
+
+	So can this very simplistic approach be at least comparable to css?
+	Let's start with classical three-column layout, widths 25%, 50% and
+	25% again, equal height.
+
+		Three columns
+
+=>test/threecolumn.html
+
+>test-html-pre
+-		page = { 
+-			top:		20,
+-			left:		20,
+-			right:		'(- document.body.clientWidth 20)',
+-			bottom:		'.columns.bottom',
+-		}
+
+-		page.columns = {
+-			top:	'..top',
+-			left:	'..left',
+-			bottom:	'(+ .top (max .c1.contentHeight .c2.contentHeight .c3.contentHeight))',
+-			right:	'(* 0.25 (- ..right ..left))',
+-		}
+
+-		page.columns.c1 = {
+-			top:	'..top',
+-			left:	'..left',
+-			bottom:	'..bottom',
+-			right:	'(* 0.25 (- ..right ..left))',
+-			html: 'hello, world'
+-		}
+
+-		page.columns.c2 = {
+-			top:	'..top',
+-			left:	'..left',
+-			bottom:	'..bottom',
+-			right:	'(* 0.50 (- ..right ..left))',
+-			html: 'hello, world'
+-		}
+
+-		page.columns.c3 = {
+-			top:	'..top',
+-			left:	'..left',
+-			bottom:	'..bottom',
+-			right:	'(* 0.25 (- ..right ..left))',
+-			html: 'hello, world'
+-		}
+
+>test-html-post
+	
+
+
+
 
 		Lisp parser
 
@@ -454,8 +508,8 @@ note, that bottom and right do not have css meaning.
 -function run() {
 -	parse();
 -	var i;
--	for(i=0;i<200;i++) { if(walk_all(resolve_block,'page',page)==0) break; }
--	if(i==200) {
+-	for(i=0;i<300;i++) { if(walk_all(resolve_block,'page',page)==0) break; }
+-	if(i==300) {
 -		walk_all(report_unresolved,'page',page);
 -	}
 -	bake();
