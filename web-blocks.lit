@@ -13,15 +13,16 @@
 	information. It did it's job quite well for text styling,
 	but failed to provide universal layout mechanism.
 
-	Seems like 15 years from it's invention CSS commitete
-	gave up and resorted to ad-hoc layout specification
-	modules, like tables and columns.
+	Seems like 15 years from it's invention W3C gave up and resorted
+	to ad-hoc layout modules, like tables and columns.
 
 	Still, you have to specify half of design with HTML, half
 	with CSS.
 
 	Is this problem solvable at all? Can presentation and data
 	be truly separated?
+
+that's not question i am going to answer
 
 		Visual formatting model
 
@@ -52,7 +53,7 @@ note, that bottom and right do not have css meaning.
 
 	<object data="fig1.svg" type="image/svg+xml"></object> 
 =>fig1.svg
--<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="300">
+-<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="300" width="300">
 >	arrows
 >	browser-mockup
 -	<rect x="60" y="50" width="200" height="150" style="fill:none;stroke:grey;stroke-width:1;"/>
@@ -68,8 +69,9 @@ note, that bottom and right do not have css meaning.
 
 	In Javascript notation, two blocks, 'page' and 'page.block1':
 
-=test-block-basic
+=>test/basic.html
 
+>test-html-pre
 -		page = { 
 -			top:		20,
 -			left:		30, 
@@ -83,6 +85,7 @@ note, that bottom and right do not have css meaning.
 -			bottom:		50, 
 -			right:		80, 
 -		}
+>test-html-post
 
 	But in real life block coordinates can't be defined
 	directly, as they are a function of content (text size,
@@ -93,12 +96,14 @@ note, that bottom and right do not have css meaning.
 
 insert image with blocks
 
-=test-block-relative
+=>test/relative.html
+
+>test-html-pre
 -		page = { 
 -			top:		20,
--			left:		20, 
--			bottom:		1010, 
--			right:		700, 
+-			left:		20,
+-			right:		'(- document.body.clientWidth 20)',
+-			bottom:		400,
 -		}
 
 -		page.block1 = {
@@ -114,6 +119,7 @@ insert image with blocks
 -			bottom:	'(+ page.block2.top 50)',
 -			right:	'(+ page.block2.left 75)',
 -		}
+>test-html-post
 
 	Position of block2 depends on block1 position and size.
 
@@ -448,16 +454,8 @@ insert image with blocks
 =test-html-post
 -</script><script src="../main.js"></script><body></body></html>
 
-=>test/basic.html
->test-html-pre
->test-block-basic
->test-html-post
 
 
-=>test/relative.html
->test-html-pre
->test-block-relative
->test-html-post
 
 =>test/html.html
 >test-html-pre
