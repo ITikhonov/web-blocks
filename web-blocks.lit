@@ -217,42 +217,37 @@ note, that bottom and right do not have css meaning.
 =>test/threecolumn.html
 
 >test-html-pre
+>lorem
+
 -		page = { 
 -			top:		20,
 -			left:		20,
 -			right:		'(- document.body.clientWidth 20)',
--			bottom:		'.columns.bottom',
+-			bottom:		'.c1.bottom',
 -		}
 
--		page.columns = {
+-		page.c1 = {
 -			top:	'..top',
 -			left:	'..left',
--			bottom:	'(+ .top (max .c1.contentHeight .c2.contentHeight .c3.contentHeight))',
--			right:	'(* 0.25 (- ..right ..left))',
+-			bottom:	'(+ .top (max ..c1.contentHeight ..c2.contentHeight ..c3.contentHeight))',
+-			right:	'(+ .left (* 0.25 (- ..right ..left)))',
+-			html: lorem
 -		}
 
--		page.columns.c1 = {
+-		page.c2 = {
 -			top:	'..top',
--			left:	'..left',
--			bottom:	'..bottom',
--			right:	'(* 0.25 (- ..right ..left))',
--			html: 'hello, world'
+-			left:	'..c1.right',
+-			bottom:	'(+ .top (max ..c1.contentHeight ..c2.contentHeight ..c3.contentHeight))',
+-			right:	'(+ .left (* 0.50 (- ..right ..left)))',
+-			html: lorem
 -		}
 
--		page.columns.c2 = {
+-		page.c3 = {
 -			top:	'..top',
--			left:	'..left',
--			bottom:	'..bottom',
--			right:	'(* 0.50 (- ..right ..left))',
--			html: 'hello, world'
--		}
-
--		page.columns.c3 = {
--			top:	'..top',
--			left:	'..left',
--			bottom:	'..bottom',
--			right:	'(* 0.25 (- ..right ..left))',
--			html: 'hello, world'
+-			left:	'..c2.right',
+-			bottom:	'(+ .top (max ..c1.contentHeight ..c2.contentHeight ..c3.contentHeight))',
+-			right:	'(+ .left (* 0.25 (- ..right ..left)))',
+-			html: lorem
 -		}
 
 >test-html-post
@@ -400,9 +395,12 @@ note, that bottom and right do not have css meaning.
 	We scan each coordinate:
 
 	0. if already has a value, skip
+
 	1. otherwise remove from dependencies all values
-		which are already calculated.
+	which are already calculated.
+
 	2. if it has no dependencies, calculate value
+
 	3. repeat
 
 =resolve-block
@@ -440,7 +438,12 @@ note, that bottom and right do not have css meaning.
 -	if(b._deps.right.content) cd++;
 -	if(b._deps.bottom.content) cd++;
 
--	if(d && cd==d) {
+	If we have left&right or top&bottom - we are ready to
+	compute content.
+
+-	var cr=(b.left&&b.right) || (b.top&&b.bottom);
+
+-	if(cr || (d && cd==d)) {
 -		render_html(b,path,z);
 -		b.contentWidth=b._el.scrollWidth;
 -		b.contentHeight=b._el.scrollHeight;
@@ -524,6 +527,8 @@ note, that bottom and right do not have css meaning.
 =test-html-post
 -</script><script src="../main.js"></script><body></body></html>
 
+=lorem
+-		var lorem='<div style="padding:1em">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum</div>';
 
 		SVG utilities
 
