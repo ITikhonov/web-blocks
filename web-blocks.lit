@@ -218,6 +218,49 @@ note, that bottom and right do not have css meaning.
 	Let's start with classical three-column layout, widths 25%, 50% and
 	25% again, equal height.
 
+		Some sugar
+
+	First some syntactic sugar to improve readability.
+
+	Instead of refering to block by full name single <code>.</code> can be written.
+	Two rows below are equivalent.
+
+	<pre>
+	page.block1.block2.right = '(+ page.block1.block2.left 10)';
+	page.block1.block2.right = '(+ .left 10)';
+	</pre>
+
+	To refer to parent block use two dots.
+
+	<pre>
+	page.block1.block2.top = 'page.block1.top';
+	page.block1.block2.top = '..top';
+	</pre>
+
+	Blocks can be put into array. Last and first elements in array
+	are addressable. Elements inside of array can address .next and .prev
+	elements.
+
+	<pre>
+	c2.top = '.prev.top';
+	c2.top = '.next.bottom';
+
+	page.c = [c1,c2,c3];
+	page.top = '.c.first.top';
+	page.bottom = '.c.last.bottom';
+	</pre>
+
+
+	Common calculations can be specified with separate property, which obey
+	ordinary rules.
+
+	<pre>
+	page.halfpage = '(* 0.5 (.right - .left))';
+	page.pad = 20
+	page.block1.right = '(+ ..pad .left page.halfpage)';
+	page.block2.right = '(+ ..pad .left page.halfpage)';
+	</pre>
+
 		Three columns
 
 =>test/threecolumn.html
