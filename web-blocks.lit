@@ -421,25 +421,21 @@ can this be done lol?
 
 =parse-block
 -function parse_block(b,_,_,parent) {
--	b._top=parse_sexpr(b.top);
--	b._left=parse_sexpr(b.left);
--	b._right=parse_sexpr(b.right);
--	b._bottom=parse_sexpr(b.bottom);
-
--	b.top=undefined;
--	b.left=undefined;
--	b.right=undefined;
--	b.bottom=undefined;
-
 -	b._=parent;
+-	b._deps={};
+-	b._func={};
+-	b._source={};
 
--	b._deps={top:[],left:[],right:[],bottom:[]}
+-	for(var k in b) {
+-		if(k[0]=='_') continue;
+-		if(k=='html') continue;
 
--	b._func={
--		top:compile_lisp(b._top,b._deps.top),
--		left:compile_lisp(b._left,b._deps.left),
--		right:compile_lisp(b._right,b._deps.right),
--		bottom:compile_lisp(b._bottom,b._deps.bottom),
+-		if(typeof(b[k])=='string' || typeof(b[k])=='number') {
+-			b._source[k]=parse_sexpr(b[k]);
+-			b[k]=undefined;
+-			b._deps[k]=[];
+-			b._func[k]=compile_lisp(b._source[k],b._deps[k]);
+-		}
 -	}
 
 -}
@@ -491,6 +487,9 @@ can this be done lol?
 	Sometimes, the only way to resolve block
 	is to compute it's content (like when
 	right and bottom depend on content).
+
+here is a bug, probably (we now not only have these four lispy things, but
+may be more, differently named.
 
 -	var cd=0;
 -	if(b._deps.top.content) cd++;
