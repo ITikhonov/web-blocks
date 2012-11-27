@@ -508,8 +508,9 @@ note, that bottom and right do not have css meaning.
 	is to compute it's content (like when
 	right and bottom depend on content).
 
-here is a bug, probably (we now not only have these four lispy things, but
-may be more, differently named.
+Looks like there is a bug. We now not only have these four lispy things, but
+may be more, differently named. Also it does not handle situation when edges
+depend on something which in turn depend on content.
 
 -	var cd=0;
 -	if(b._deps.top.content) cd++;
