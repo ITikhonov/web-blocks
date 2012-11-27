@@ -265,20 +265,6 @@ note, that bottom and right do not have css meaning.
 	wraps rest nicely, but maintains alignment to both left and right side
 	of the page. Can this be done with CSS?
 
-can this be done lol?
-
-	Calculate how much items can be hold in a row
-
-	n=(floor (/ (- ..right ..left) 128))
-
-	Calculate offset between:
-
-	x(n)=..left+X*n
-
-	X=(/ (- (- ..right 128) ..left) n)
-
-
-
 =>test/catalog.html
 
 >test-html-pre
@@ -288,8 +274,14 @@ can this be done lol?
 -			left:	20,
 -			right:	'(- document.body.clientWidth 20)',
 -			bottom:	'.c.last.bottom',
+
+	Calculate how much items can be hold in a row
+
 -			n:	'(floor (/ (- .right .left) 128))',
--			x:	'(/ (- (- .right 128) .left) (- .n 1))'
+
+	Calculate offset from one item to another
+
+-			dx:	'(/ (- (- .right 128) .left) (- .n 1))'
 -		}
 
 -		page.c = [{
@@ -303,12 +295,12 @@ can this be done lol?
 -		for(var i=1;i<24;i++) {
 -			page.c.push({
 -				top: '(+ .prev.top (? .cond 0 140))',
--				left: '(? .cond .l ..left)',
+-				left: '(? .cond .maybe ..left)',
 -				right:	'(+ .left 128)',
 -				bottom:	'(+ .top 128)',
 
--				cond:'(< (- (+ .l 128) 0.01) ..right)',
--				l:'(+ .prev.left ..x)',
+-				cond:'(< (- (+ .maybe 128) 0.01) ..right)',
+-				maybe:'(+ .prev.left ..dx)',
 
 -				html: 'block'+i
 -			});
