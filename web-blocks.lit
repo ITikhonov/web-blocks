@@ -287,7 +287,7 @@ can this be done lol?
 -			top:	20,
 -			left:	20,
 -			right:	'(- document.body.clientWidth 20)',
--			bottom:	'.c[this.c.length-1].bottom',
+-			bottom:	'.c.last.bottom',
 -			n:	'(floor (/ (- .right .left) 128))',
 -			x:	'(/ (- (- .right 128) .left) (- .n 1))'
 -		}
@@ -302,16 +302,13 @@ can this be done lol?
 
 -		for(var i=1;i<24;i++) {
 -			page.c.push({
--				top: '(+ .prev_top (? .cond 0 140))',
+-				top: '(+ .prev.top (? .cond 0 140))',
 -				left: '(? .cond .l ..left)',
 -				right:	'(+ .left 128)',
 -				bottom:	'(+ .top 128)',
 
 -				cond:'(< (- (+ .l 128) 0.01) ..right)',
--				l:'(+ .prev_left ..x)',
-
--				prev_left:'..c['+(i-1)+'].left',
--				prev_top:'..c['+(i-1)+'].top',
+-				l:'(+ .prev.left ..x)',
 
 -				html: 'block'+i
 -			});
@@ -452,6 +449,17 @@ can this be done lol?
 -			b[k]=undefined;
 -			b._deps[k]=[];
 -			b._func[k]=compile_lisp(b._source[k],b._deps[k]);
+-		} else if(b[k] instanceof Array) {
+-			b[k].last=b[k][b[k].length-1];
+-			b[k].first=b[k][0];
+-			for(var i=0;i<b[k].length;i++) {
+-				Object.defineProperty(b[k][i],'prev',{
+-					value:b[k][i-1],enumerable:false
+-				});
+-				Object.defineProperty(b[k][i],'next',{
+-					value:b[k][i+1],enumerable:false
+-				});
+-			}
 -		}
 -	}
 
