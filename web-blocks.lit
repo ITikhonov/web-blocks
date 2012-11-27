@@ -338,6 +338,8 @@ note, that bottom and right do not have css meaning.
 -			html:	'block0'
 -		}]
 
+	They are identical except of html.
+
 -		for(var i=1;i<24;i++) {
 -			page.c.push({
 -				top: '(+ .prev.top (? .cond 0 140))',
@@ -354,9 +356,16 @@ note, that bottom and right do not have css meaning.
 
 >test-html-post
 	
+		Implementation
 
 
 		Lisp parser
+
+	You may wonder why Lisp-ish syntax. Well, between spending time
+	writing parser and writing whole thing i chose latter.
+
+	It was raw javascript at first, but then algorithm demanded all
+	identifiers for dependencies.
 
 =lisp-parser
 -function parse_sexpr(s) {
@@ -428,6 +437,8 @@ note, that bottom and right do not have css meaning.
 -	return (function() { return s; });
 -}
 
+		Layout engine
+
 		Walking
 
 =each-block
@@ -468,9 +479,6 @@ note, that bottom and right do not have css meaning.
 
 		Parsing
 
-	For convenience relative coordinates are given as sexpr in
-	string, so we parse it before processing.
-
 =parse-block
 -function parse_block(b,_,_,parent) {
 -	b._=parent;
@@ -505,11 +513,10 @@ note, that bottom and right do not have css meaning.
 
 		Resolving coordinates
 
-	Converting relative coordinates into absolute.
+	To convert relative coordinates into absolute we check
+	each coordinate:
 
-	We scan each coordinate:
-
-	0. if already has a value, skip
+	0. if it already has a value, skip
 
 	1. otherwise remove from dependencies all values
 	which are already calculated.
@@ -547,9 +554,8 @@ note, that bottom and right do not have css meaning.
 -		d+=resolve_coord(b,k);
 -	}
 
-	Sometimes, the only way to resolve block
-	is to compute it's content (like when
-	right and bottom depend on content).
+	Sometimes, the only way to resolve block is to compute
+	it's content (like when right and bottom depend on content).
 
 Looks like there is a bug. We now not only have these four lispy things, but
 may be more, differently named. Also it does not handle situation when edges
@@ -616,6 +622,8 @@ depend on something which in turn depend on content.
 -	report_unresolved_field(block,'bottom',name);
 -}
 
+		Main
+
 =>main.js
 -(function() {
 
@@ -643,6 +651,8 @@ depend on something which in turn depend on content.
 -window.onload=run;
 
 -})();
+
+		Test
 
 =test-html-pre
 -<html><head><meta http-equiv="Content-Type" content="text/html;charset=utf-8"><style>.apos{position:absolute;margin:0;padding:0;border:1px solid black;overflow:hidden}</style></head><script>
