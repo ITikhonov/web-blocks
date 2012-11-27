@@ -287,21 +287,21 @@ can this be done lol?
 -			top:	20,
 -			left:	20,
 -			right:	'(- document.body.clientWidth 20)',
--			bottom:	'.c23.bottom',
+-			bottom:	'.c[this.c.length-1].bottom',
 -			n:	'(floor (/ (- .right .left) 128))',
 -			x:	'(/ (- (- .right 128) .left) (- .n 1))'
 -		}
 
--		page.c0 = {
+-		page.c = [{
 -			top:	'..top',
 -			left:	'..left',
 -			right:	'(+ .left 128)',
 -			bottom:	'(+ .top 128)',
 -			html:	'block0'
--		}
+-		}]
 
 -		for(var i=1;i<24;i++) {
--			page['c'+i] = {
+-			page.c.push({
 -				top: '(+ .prev_top (? .cond 0 140))',
 -				left: '(? .cond .l ..left)',
 -				right:	'(+ .left 128)',
@@ -310,11 +310,11 @@ can this be done lol?
 -				cond:'(< (- (+ .l 128) 0.01) ..right)',
 -				l:'(+ .prev_left ..x)',
 
--				prev_left:'..c'+(i-1)+'.left',
--				prev_top:'..c'+(i-1)+'.top',
+-				prev_left:'..c['+(i-1)+'].left',
+-				prev_top:'..c['+(i-1)+'].top',
 
 -				html: 'block'+i
--			}
+-			});
 -		}
 
 >test-html-post
@@ -405,8 +405,14 @@ can this be done lol?
 -		if(k=='bottom') continue;
 -		if(k=='contentWidth') continue;
 -		if(k=='contentHeight') continue;
--		if(typeof block[k]!='object') continue;
--		func(block[k],k);
+
+-		if(block[k] instanceof Array) {
+-			for(var i in block[k]) {
+-				func(block[k][i],k);
+-			}
+-		} else if(typeof block[k]=='object') {
+-			func(block[k],k);
+-		}
 -	}
 -}
 
