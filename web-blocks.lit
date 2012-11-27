@@ -28,6 +28,8 @@ that's not question i am going to answer
 
 limit "weakest point" to block-level elements
 
+too much attack?
+
 	Perhaps, weakest point of CSS is a visual formatting model,
 	the thingy which decides where on screen guts of your &lt;div&gt;
 	will be.
@@ -257,7 +259,55 @@ note, that bottom and right do not have css meaning.
 >test-html-post
 	
 
+		Catalog view
 
+	Thing, that displays as much 128x128 elements as it can in a row,
+	wraps rest nicely, but maintains alignment to both left and right side
+	of the page. Can this be done with CSS?
+
+can this be done lol?
+
+	Calculate how much items can be hold in a row
+
+	n=(floor (/ (- ..right ..left) 128))
+
+	Calculate offset between:
+
+	x(n)=..left+X*n
+
+	X=(/ (- (- ..right 128) ..left) n)
+
+
+
+=>test/catalog.html
+
+>test-html-pre
+
+-		page = { 
+-			top:		20,
+-			left:		20,
+-			right:		'(- document.body.clientWidth 20)',
+-			bottom:		'.c23.bottom',
+-		}
+
+-		var n='(floor (/ (- ..right ..left) 128))';
+-		var x='(/ (- (- ..right 128) ..left) (- '+n+' 1))';
+-		for(var i=1;i<24;i++) {
+-			var l='(+ ..c'+(i-1)+'.left '+x+')';
+-			var cond='(< (- (+ '+l+' 128) 0.01) ..right)'
+-			page['c'+i] = {
+-				top: '(+ ..c'+(i-1)+'.top (? '+cond+' 0 140))',
+-				left: '(? '+cond+' '+l+' ..left)',
+-				right:	'(+ .left 128)',
+-				bottom:	'(+ .top 128)',
+-				html: 'block'+i
+-			}
+-		}
+-		page.c1.top='..top';
+-		page.c1.left='..left';
+
+>test-html-post
+	
 
 
 		Lisp parser
@@ -296,6 +346,8 @@ note, that bottom and right do not have css meaning.
 
 -	'max':Math.max,
 -	'min':Math.min,
+-	'floor':Math.floor,
+-	'dump':function(a) { console.log(arguments); return a; },
 
 -	'<':function(a,b) { return a<b; },
 -	'>':function(a,b) { return a>b; },
