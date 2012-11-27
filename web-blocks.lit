@@ -284,27 +284,38 @@ can this be done lol?
 >test-html-pre
 
 -		page = { 
--			top:		20,
--			left:		20,
--			right:		'(- document.body.clientWidth 20)',
--			bottom:		'.c23.bottom',
+-			top:	20,
+-			left:	20,
+-			right:	'(- document.body.clientWidth 20)',
+-			bottom:	'.c23.bottom',
+-			n:	'(floor (/ (- .right .left) 128))',
+-			x:	'(/ (- (- .right 128) .left) (- .n 1))'
 -		}
 
--		var n='(floor (/ (- ..right ..left) 128))';
--		var x='(/ (- (- ..right 128) ..left) (- '+n+' 1))';
+-		page.c0 = {
+-			top:	'..top',
+-			left:	'..left',
+-			right:	'(+ .left 128)',
+-			bottom:	'(+ .top 128)',
+-			html:	'block0'
+-		}
+
 -		for(var i=1;i<24;i++) {
--			var l='(+ ..c'+(i-1)+'.left '+x+')';
--			var cond='(< (- (+ '+l+' 128) 0.01) ..right)'
 -			page['c'+i] = {
--				top: '(+ ..c'+(i-1)+'.top (? '+cond+' 0 140))',
--				left: '(? '+cond+' '+l+' ..left)',
+-				top: '(+ .prev_top (? .cond 0 140))',
+-				left: '(? .cond .l ..left)',
 -				right:	'(+ .left 128)',
 -				bottom:	'(+ .top 128)',
+
+-				cond:'(< (- (+ .l 128) 0.01) ..right)',
+-				l:'(+ .prev_left ..x)',
+
+-				prev_left:'..c'+(i-1)+'.left',
+-				prev_top:'..c'+(i-1)+'.top',
+
 -				html: 'block'+i
 -			}
 -		}
--		page.c1.top='..top';
--		page.c1.left='..left';
 
 >test-html-post
 	
@@ -479,10 +490,10 @@ can this be done lol?
 
 -function resolve_block(b,path,z) {
 -	var d=0;
--	d+=resolve_coord(b,'left');
--	d+=resolve_coord(b,'top');
--	d+=resolve_coord(b,'right');
--	d+=resolve_coord(b,'bottom');
+
+-	for(k in b._deps) {
+-		d+=resolve_coord(b,k);
+-	}
 
 	Sometimes, the only way to resolve block
 	is to compute it's content (like when
