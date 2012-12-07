@@ -5,59 +5,32 @@
 	back in 1996. But industry pushes for more and more elaborate
 	designs and layouts, well above CSS abilities.
 
-	How many times CSS was damned while hacking 4-column layout
-	with floats? Or how many times you put a senseless tag just
-	to be able to style things the way needed?
-
-	One of the reasons for CSS to separate presentation from
-	information. It did it's job quite well for text styling,
+	One of the reasons for CSS is to separate presentation from
+	information. It does it's job quite well for text styling,
 	but failed to provide universal layout mechanism.
-
-	Seems like 15 years from it's invention W3C gave up and resorted
-	to ad-hoc layout modules, like tables and columns.
 
 	Still, you have to specify half of design with HTML, half
 	with CSS.
 
-	Is this problem solvable at all? Can presentation and data
-	be truly separated?
-
-that's not question i am going to answer
-
-		Visual formatting model
-
-limit "weakest point" to block-level elements
-
-too much attack?
-
-	Perhaps, weakest point of CSS is a visual formatting model,
-	the thingy which decides where on screen guts of your &lt;div&gt;
-	will be.
-
-	Quite complex mechanism described by 115 kilobyte specification,
-	not including special layouts like tables. Probably, the chief
-	reason of layout incompabilities between browsers is this
-	complexity.
-
-	And yet, CSS is quite limiting in what you can actually archive
-	with it without resorting to hacks.
-
-		The Question
-
-	Can there be a way to make layouts without it being a tough
-	black art?
+	Here i present alternative block-level formatting model.
+	Hopefully it can do all what CSS can and even more.
 
 		What the heck is layout?
 
-define 'blocks'
+	In the very end of any layout mechanism, you get a bunch
+	of rectangle areas. This rectangles tell you where to
+	draw content on screen.
 
-very unclear paragraph follows
+	There are several ways to define rectangles, i choosed somewhat
+	reminiscent of CSS way by using top, bottom, left and right
+	edges. But bottom and right have different meaning, they still
+	expressed relative to origin (i.e. left and right use same coordinate
+	system unlike that of CSS).
 
-	In the very end of any layout mechanism, all visual blocks on
-	page end up being defined by four numbers: top, bottom, left
-	and right. They are distance from absolute zero.
+	Other difference is that all coordinates are expressed relative to
+	top-left corner of document page (think JQuery's .offset()).
 
-note, that bottom and right do not have css meaning.
+	I call these rectangles "blocks".
 
 	<object data="basic.svg" type="image/svg+xml"></object> 
 
@@ -106,7 +79,7 @@ note, that bottom and right do not have css meaning.
 	font) or environment (viewport size).
 
 	So block coordinates are mostly specified in terms of
-	relation to other blocks.
+	relations with other blocks.
 
 	<object data="relative.svg" type="image/svg+xml"></object> 
 
@@ -174,6 +147,10 @@ note, that bottom and right do not have css meaning.
 -		}
 >test-html-post
 
+	<i>Yes, Lispy, there is a technical reason (algorithm needs some
+	info from source code and i am not in a mood to write fancy parser),
+	will explain down there.</i>
+
 	Right edge of page block is defined relative to viewport
 	width and so on. Position of block2 depends on block1 position
 	and size.
@@ -214,7 +191,7 @@ note, that bottom and right do not have css meaning.
 
 		Typical layouts
 
-	So can this very simplistic approach be at least comparable to css?
+	So can this very simplistic approach be at least comparable to CSS?
 	Let's start with classical three-column layout, widths 25%, 50% and
 	25% again, equal height.
 
