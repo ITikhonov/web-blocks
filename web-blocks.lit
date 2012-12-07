@@ -1,7 +1,7 @@
 
 		Cascading Style Sheets
 
-	CSS was a quite breakthrough from using &lt;font&gt; tag
+	CSS was quite a breakthrough from using &lt;font&gt; tag
 	back in 1996. But industry pushes for more and more elaborate
 	designs and layouts, well above CSS abilities.
 
@@ -12,8 +12,9 @@
 	Still, you have to specify half of design with HTML, half
 	with CSS.
 
-	Here i present alternative block-level formatting model.
-	Hopefully it can do all what CSS can and even more.
+	Here is my humble take on alternative approach for block-level
+	formatting model. Hopefully it can do all what CSS can and
+	even more.
 
 		What the heck is layout?
 
@@ -195,7 +196,7 @@
 		Resolving coordinates
 
 	In this implementation the very simplistic (and not
-	very effective) approach is used.
+	very effective&nbsp;&ndash; read "slow") approach is used.
 
 	To convert relative coordinates into absolute one
 	algorithm do a lot of iterations. Each time it starts
@@ -335,30 +336,30 @@ depend on something what in turn depend on content.
 -			top:		20,
 -			left:		20,
 -			right:		'(- document.body.clientWidth 20)',
--			bottom:		'.c1.bottom',
+-			bottom:		'(+ .top (max .c1.contentHeight .c2.contentHeight .c3.contentHeight))',
 -		}
 
 -		page.c1 = {
 -			top:	'..top',
 -			left:	'..left',
--			bottom:	'(+ .top (max ..c1.contentHeight ..c2.contentHeight ..c3.contentHeight))',
 -			right:	'(+ .left (* 0.25 (- ..right ..left)))',
+-			bottom: '..bottom',
 -			html: lorem
 -		}
 
 -		page.c2 = {
 -			top:	'..top',
 -			left:	'..c1.right',
--			bottom:	'(+ .top (max ..c1.contentHeight ..c2.contentHeight ..c3.contentHeight))',
 -			right:	'(+ .left (* 0.50 (- ..right ..left)))',
+-			bottom: '..bottom',
 -			html: lorem
 -		}
 
 -		page.c3 = {
 -			top:	'..top',
 -			left:	'..c2.right',
--			bottom:	'(+ .top (max ..c1.contentHeight ..c2.contentHeight ..c3.contentHeight))',
 -			right:	'(+ .left (* 0.25 (- ..right ..left)))',
+-			bottom: '..bottom',
 -			html: lorem
 -		}
 
@@ -401,7 +402,10 @@ depend on something what in turn depend on content.
 -			html:	'block0'
 -		}]
 
-	They are identical except of html.
+	They are identical except of html, so i am being lazy
+	and generate them in a loop. There is no cheating by
+	using javascript directly for something (except block
+	naming in 'html:').
 
 -		for(var i=1;i<24;i++) {
 -			page.c.push({
@@ -427,7 +431,7 @@ depend on something what in turn depend on content.
 	You may wonder why Lisp-ish syntax. Well, between spending time
 	writing parser and writing whole thing i chose latter.
 
-	It was raw javascript at first, but then algorithm demanded all
+	It was pure javascript at first, but then algorithm demanded all
 	identifiers for dependencies.
 
 =lisp-parser
