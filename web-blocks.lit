@@ -30,8 +30,6 @@
 	Other difference is that all coordinates are expressed relative to
 	top-left corner of document page (think JQuery's .offset()).
 
-	I call these rectangles "blocks".
-
 	<object data="basic.svg" type="image/svg+xml"></object> 
 
 =>basic.svg
@@ -52,7 +50,12 @@
 
 -</svg>
 
-	In Javascript notation, two blocks, 'page' and 'page.block1':
+	I call these rectangles "blocks".
+
+	In Javascript object notation, two blocks, 'page' and 'page.block1':
+
+	<i>All example html files use javascript implementation to generate things
+	on load from javascript objects defined in examples.</i>
 
 =>test/basic.html
 
@@ -189,6 +192,89 @@
 
 >test-html-post
 
+		Resolving coordinates
+
+	In this implementation the very simplistic (and not
+	very effective) approach is used.
+
+	To convert relative coordinates into absolute one
+	algorithm do a lot of iterations. Each time it starts
+	with root block (the one i call "page") and goes down
+	in each subblock and so on.
+
+	In each block it goes through all coordinates which are
+	not yet computed into nice number.
+
+	If every identifier in coordinate definition is computed
+	to number, it evaluates definition. Otherwise it proceeds
+	to next coodinate in a block (or next block).
+
+	There are few corner cases involving calculations based on
+	content size, look in a code if you fill curious.
+
+	So after dozens of iterations we should have every block
+	have nice absolute numbers in all four coordinates.
+
+
+=resolve-block
+-function _eval(s,_) {
+-	return eval(s);
+-}
+
+-function resolve_coord(b,f) {
+-	if(b[f]==undefined) {
+-		for(var i=0;i<b._deps[f].length;) {
+-			var x=b._deps[f][i];
+-			if(_eval.call(b,x)!=undefined) {
+-				b._deps[f].splice(i,1);
+-				continue;
+-			}
+-			i++;
+-		}
+-		if(b._deps[f].length==0) {
+-			b[f]=b._func[f].call(b);
+-		}
+-	}
+-	return b._deps[f].length?1:0;
+-}
+
+-function resolve_block(b,path,z) {
+-	var d=0;
+
+-	for(k in b._deps) {
+-		d+=resolve_coord(b,k);
+-	}
+
+	Sometimes, the only way to resolve block is to compute
+	it's content (like when right and bottom depend on content).
+
+-
+
+Looks like there is a bug. We now not only have these four lispy things, but
+may be more, differently named. Also it does not handle situation when edges
+depend on something what in turn depend on content.
+
+-	var cd=0;
+-	if(b._deps.top.content) cd++;
+-	if(b._deps.left.content) cd++;
+-	if(b._deps.right.content) cd++;
+-	if(b._deps.bottom.content) cd++;
+
+	If we have left&right or top&bottom - we are ready to
+	compute content.
+
+-	var cr=(b.left&&b.right) || (b.top&&b.bottom);
+
+-	if(cr || (d && cd==d)) {
+-		render_html(b,path,z);
+-		b.contentWidth=b._el.scrollWidth;
+-		b.contentHeight=b._el.scrollHeight;
+-	}
+
+-	return d;
+-}
+
+
 		Typical layouts
 
 	So can this very simplistic approach be at least comparable to CSS?
@@ -199,7 +285,7 @@
 
 	First some syntactic sugar to improve readability.
 
-	Instead of refering to block by full name single <code>.</code> can be written.
+	Instead of referring to block by full name single <code>.</code> can be written.
 	Two rows below are equivalent.
 
 	<pre>
@@ -487,78 +573,6 @@
 -	}
 
 -}
-
-		Resolving coordinates
-
-	To convert relative coordinates into absolute we check
-	each coordinate:
-
-	0. if it already has a value, skip
-
-	1. otherwise remove from dependencies all values
-	which are already calculated.
-
-	2. if it has no dependencies, calculate value
-
-	3. repeat
-
-=resolve-block
--function _eval(s,_) {
--	return eval(s);
--}
-
--function resolve_coord(b,f) {
--	if(b[f]==undefined) {
--		for(var i=0;i<b._deps[f].length;) {
--			var x=b._deps[f][i];
--			if(_eval.call(b,x)!=undefined) {
--				b._deps[f].splice(i,1);
--				continue;
--			}
--			i++;
--		}
--		if(b._deps[f].length==0) {
--			b[f]=b._func[f].call(b);
--		}
--	}
--	return b._deps[f].length?1:0;
--}
-
--function resolve_block(b,path,z) {
--	var d=0;
-
--	for(k in b._deps) {
--		d+=resolve_coord(b,k);
--	}
-
-	Sometimes, the only way to resolve block is to compute
-	it's content (like when right and bottom depend on content).
-
-Looks like there is a bug. We now not only have these four lispy things, but
-may be more, differently named. Also it does not handle situation when edges
-depend on something which in turn depend on content.
-
--	var cd=0;
--	if(b._deps.top.content) cd++;
--	if(b._deps.left.content) cd++;
--	if(b._deps.right.content) cd++;
--	if(b._deps.bottom.content) cd++;
-
-	If we have left&right or top&bottom - we are ready to
-	compute content.
-
--	var cr=(b.left&&b.right) || (b.top&&b.bottom);
-
--	if(cr || (d && cd==d)) {
--		render_html(b,path,z);
--		b.contentWidth=b._el.scrollWidth;
--		b.contentHeight=b._el.scrollHeight;
--	}
-
--	return d;
--}
-
-
 
 		Generate HTML
 
