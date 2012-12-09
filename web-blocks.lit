@@ -132,22 +132,22 @@
 -		page = { 
 -			top:		20,
 -			left:		20,
--			right:		'(- document.body.clientWidth 20)',
+-			right:		'document.body.clientWidth+20',
 -			bottom:		400,
 -		}
 
 -		page.block1 = {
 -			top:	'page.top',
--			left:	'(+ page.left 20)',
--			bottom:	'(+ page.block1.top 100)',
--			right:	'(+ page.block1.left 120)',
+-			left:	'page.left+20',
+-			bottom:	'page.block1.top+100',
+-			right:	'page.block1.left+120',
 -		}
 
 -		page.block2 = {
--			top:	'(+ page.block1.bottom 5)',
--			left:	'(- page.block1.right 5)',
--			bottom:	'(+ page.block2.top 50)',
--			right:	'(+ page.block2.left 75)',
+-			top:	'page.block1.bottom+5',
+-			left:	'page.block1.right-5',
+-			bottom:	'page.block2.top+50',
+-			right:	'page.block2.left+75',
 -		}
 >test-html-post
 
@@ -176,18 +176,18 @@
 -		}
 
 -		page.block1 = {
--			top:	'(+ page.top 20)',
--			left:	'(+ page.left 20)',
--			right:	'(+ page.block1.left 30)',
--			bottom:	'(+ page.block1.top (+ page.block1.contentHeight 20))',
+-			top:	'page.top+20',
+-			left:	'page.left+20',
+-			right:	'page.block1.left+30',
+-			bottom:	'page.block1.top+page.block1.contentHeight+20',
 -			html:	'block1 Hello, world!'
 -		}
 
 -		page.block1.block2 = {
--			top:	'(+ page.block1.top 20)',
--			left:	'(+ page.block1.left 30)',
--			right:	'(+ page.block1.block2.left page.block1.block2.contentWidth)',
--			bottom:	'(+ page.block1.block2.top page.block1.block2.contentHeight)',
+-			top:	'page.block1.top+20',
+-			left:	'page.block1.left+30',
+-			right:	'page.block1.block2.left+page.block1.block2.contentWidth',
+-			bottom:	'page.block1.block2.top+page.block1.block2.contentHeight',
 -			html:	'block2 Hello, world!'
 -		}
 
@@ -218,61 +218,41 @@
 
 
 =resolve-block
--function _eval(s,_) {
--	return eval(s);
--}
-
 -function resolve_coord(b,f) {
--	if(b[f]==undefined) {
--		for(var i=0;i<b._deps[f].length;) {
--			var x=b._deps[f][i];
--			if(_eval.call(b,x)!=undefined) {
--				b._deps[f].splice(i,1);
--				continue;
--			}
--			i++;
--		}
--		if(b._deps[f].length==0) {
--			b[f]=b._func[f].call(b);
--		}
+-	try {
+-		b[f]=b._func[f].call(b);
+-	} catch(e) {
+-		if(e==NotReadyYet) return false;
+-		throw e;
 -	}
--	return b._deps[f].length?1:0;
+-	return true;
 -}
 
 -function resolve_block(b,path,z) {
--	var d=0;
+-	var ready=true;
 
--	for(k in b._deps) {
--		d+=resolve_coord(b,k);
+-	for(var k in b) {
+-		if(b[k]==null) continue;
+-		if(b[k].notready) {
+-			ready=ready&&resolve_coord(b,k);
+-		}
 -	}
 
 	Sometimes, the only way to resolve block is to compute
 	it's content (like when right and bottom depend on content).
 
--
-
-Looks like there is a bug. We now not only have these four lispy things, but
-may be more, differently named. Also it does not handle situation when edges
-depend on something what in turn depend on content.
-
--	var cd=0;
--	if(b._deps.top.content) cd++;
--	if(b._deps.left.content) cd++;
--	if(b._deps.right.content) cd++;
--	if(b._deps.bottom.content) cd++;
-
 	If we have left&right or top&bottom - we are ready to
 	compute content.
 
--	var cr=(b.left&&b.right) || (b.top&&b.bottom);
+-	var cr=(!b.left.notready&&!b.right.notready) || (!b.top.notready&&!b.bottom.notready);
 
--	if(cr || (d && cd==d)) {
+-	if(cr || ready) {
 -		render_html(b,path,z);
 -		b.contentWidth=b._el.scrollWidth;
 -		b.contentHeight=b._el.scrollHeight;
 -	}
 
--	return d;
+-	return ready?0:1;
 -}
 
 
@@ -426,84 +406,6 @@ depend on something what in turn depend on content.
 		Implementation
 
 
-		Lisp parser
-
-	You may wonder why Lisp-ish syntax. Well, between spending time
-	writing parser and writing whole thing i chose latter.
-
-	It started with pure javascript at first, but then algorithm demanded all
-	identifiers for dependencies, so here comes Lisp.
-
-=lisp-parser
--function parse_sexpr(s) {
--	if(typeof s=='number') return s;
--	stack=[[]]
--	tokens=s.match(/\(|\)|[^\s)(]+/g)
--	for(var x in tokens) {
--		x=tokens[x];
--		if(x=='(') {
--			stack.push([]);
--		} else if(x==')') {
--			stack[stack.length-2].push(stack.pop());
--		} else {
--			var f=parseFloat(x);
--			if(!isNaN(f)) x=f;
--			stack[stack.length-1].push(x);
--		}
--	}
--	return stack[0][0];
--}
-
-
-		Lisp functions
-
-=lisp-math
--var lisp={
--	'+':function() { var s=arguments[0]; for(var i=1;i<arguments.length;i++) s+=arguments[i]; return s; },
--	'-':function() { var s=arguments[0]; for(var i=1;i<arguments.length;i++) s-=arguments[i]; return s; },
--	'*':function() { var s=arguments[0]; for(var i=1;i<arguments.length;i++) s*=arguments[i]; return s; },
--	'?':function(a,b,c) { return a?b:c; },
--	'%':function(a,b) { return a%b; },
--	'/':function(a,b) { return a/b; },
-
--	'max':Math.max,
--	'min':Math.min,
--	'floor':Math.floor,
--	'dump':function(a) { console.log(arguments); return a; },
-
--	'<':function(a,b) { return a<b; },
--	'>':function(a,b) { return a>b; },
--	'=':function(a,b) { return a==b; },
--}
-
-=compile-lisp
--function compile_lisp(s,deps) {
--	if(s instanceof Array) {
--		var f=lisp[s[0]];
--		var a=[];
--		for(var i=1;i<s.length;i++) { a.push(compile_lisp(s[i],deps)); }
--		return function() {
--			var v=[];
--			for(var i in a) { v.push(a[i].apply(this)); }
--			return f.apply(this,v);
--		}
--	}
--
--	if(typeof(s)!='number') {
--		var dots=s.match(/^\.+/);
--		if(dots) {
--			dots=dots[0].length;
--			s='this.'+(new Array(dots).join('_.'))+s.slice(dots);
--		}
--		deps.push(s);
--		if(s=='this.contentHeight' || s=='this.contentWidth') {
--			deps.content=true;
--		}
--		return (function() { return eval(s); });
--	}
--	return (function() { return s; });
--}
-
 		Layout engine
 
 		Walking
@@ -547,9 +449,15 @@ depend on something what in turn depend on content.
 		Parsing
 
 =parse-block
+-NotReadyYet={
+-	valueOf:function() {
+-		throw this;
+-	},
+-	notready:true
+-}
+
 -function parse_block(b,_,_,parent) {
 -	b._=parent;
--	b._deps={};
 -	b._func={};
 -	b._source={};
 
@@ -558,10 +466,9 @@ depend on something what in turn depend on content.
 -		if(k=='html') continue;
 
 -		if(typeof(b[k])=='string' || typeof(b[k])=='number') {
--			b._source[k]=parse_sexpr(b[k]);
--			b[k]=undefined;
--			b._deps[k]=[];
--			b._func[k]=compile_lisp(b._source[k],b._deps[k]);
+-			b._source[k]=b[k];
+-			b._func[k]=Function('return ('+b[k]+');');
+-			b[k]=NotReadyYet;
 -		} else if(b[k] instanceof Array) {
 -			b[k].last=b[k][b[k].length-1];
 -			b[k].first=b[k][0];
@@ -621,10 +528,6 @@ depend on something what in turn depend on content.
 
 =>main.js
 -(function() {
-
->lisp-parser
->lisp-math
->compile-lisp
 
 >each-block
 >parse-block
