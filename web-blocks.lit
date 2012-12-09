@@ -132,7 +132,7 @@
 -		page = { 
 -			top:		20,
 -			left:		20,
--			right:		'document.body.clientWidth+20',
+-			right:		'document.body.clientWidth-20',
 -			bottom:		400,
 -		}
 
