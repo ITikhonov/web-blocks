@@ -221,7 +221,7 @@
 -function resolve_coord(b,f) {
 -	try {
 -		if(!b._func[f]) return null;
--		b[f]=b._func[f].call(b);
+-		b[f]=b._func[f].call(b).valueOf();
 -	} catch(e) {
 -		if(e==NotReadyYet) return false;
 -		if(e instanceof NotReadyYetContent) return e.block;
@@ -353,31 +353,31 @@
 -		page = { 
 -			top:		20,
 -			left:		20,
--			right:		'(- document.body.clientWidth 20)',
--			bottom:		'(+ .top (max .c1.contentHeight .c2.contentHeight .c3.contentHeight))',
+-			right:		'document.body.clientWidth-20',
+-			bottom:		'top+Math.max(c1.contentHeight,c2.contentHeight,c3.contentHeight)',
 -		}
 
 -		page.c1 = {
--			top:	'..top',
--			left:	'..left',
--			right:	'(+ .left (* 0.25 (- ..right ..left)))',
--			bottom: '..bottom',
+-			top:	'_.top',
+-			left:	'_.left',
+-			right:	'left+0.25*(_.right-_.left)',
+-			bottom: '_.bottom',
 -			html: lorem
 -		}
 
 -		page.c2 = {
--			top:	'..top',
--			left:	'..c1.right',
--			right:	'(+ .left (* 0.50 (- ..right ..left)))',
--			bottom: '..bottom',
+-			top:	'_.top',
+-			left:	'_.c1.right',
+-			right:	'left+0.50*(_.right-_.left)',
+-			bottom: '_.bottom',
 -			html: lorem
 -		}
 
 -		page.c3 = {
--			top:	'..top',
--			left:	'..c2.right',
--			right:	'(+ .left (* 0.25 (- ..right ..left)))',
--			bottom: '..bottom',
+-			top:	'_.top',
+-			left:	'_.c2.right',
+-			right:	'left+0.25*(_.right-_.left)',
+-			bottom: '_.bottom',
 -			html: lorem
 -		}
 
@@ -397,26 +397,26 @@
 -		page = { 
 -			top:	20,
 -			left:	20,
--			right:	'(- document.body.clientWidth 20)',
--			bottom:	'.c.last.bottom',
+-			right:	'document.body.clientWidth-20',
+-			bottom:	'c.last.bottom',
 
 -			w:	128,
 -			h:	128,
 
 	Calculate how much items can be hold in a row
 
--			n:	'(floor (/ (- .right .left) .w))',
+-			n:	'Math.floor((right-left)/w)',
 
 	Calculate offset from one item to another
 
--			dx:	'(/ (- (- .right .w) .left) (- .n 1))'
+-			dx:	'(right-w-left)/(n-1)'
 -		}
 
 -		page.c = [{
--			top:	'..top',
--			left:	'..left',
--			right:	'(+ .left ..w)',
--			bottom:	'(+ .top ..h)',
+-			top:	'_.top',
+-			left:	'_.left',
+-			right:	'left+_.w',
+-			bottom:	'top+_.h',
 -			html:	'block0'
 -		}]
 
@@ -427,13 +427,13 @@
 
 -		for(var i=1;i<24;i++) {
 -			page.c.push({
--				top: '(+ .prev.top (? .cond 0 140))',
--				left: '(? .cond .maybe ..left)',
--				right:	'(+ .left ..w)',
--				bottom:	'(+ .top ..h)',
+-				top: 'prev.top+(samerow==true?0:140)',
+-				left: 'samerow==true?inrow:_.left',
+-				right:	'left+_.w',
+-				bottom:	'top+_.h',
 
--				cond:'(< (- (+ .maybe ..w) 0.01) ..right)',
--				maybe:'(+ .prev.left ..dx)',
+-				samerow:'(inrow+_.w-0.01)<_.right',
+-				inrow:'prev.left+_.dx',
 
 -				html: 'block'+i
 -			});
@@ -458,6 +458,8 @@
 -		if(k=='bottom') continue;
 -		if(k=='contentWidth') continue;
 -		if(k=='contentHeight') continue;
+
+-		if(block[k].notready) continue;
 
 -		if(block[k] instanceof Array) {
 -			for(var i in block[k]) {
@@ -509,10 +511,12 @@
 -		if(k[0]=='_') continue;
 -		if(k=='html') continue;
 
--		if(typeof(b[k])=='string' || typeof(b[k])=='number') {
+-		if(typeof(b[k])=='string') {
 -			b._source[k]=b[k];
 -			b._func[k]=Function('with(this) { return ('+b[k]+'); }');
 -			b[k]=NotReadyYet;
+-		} else if(typeof(b[k])=='number') {
+-			b._source[k]=b[k];
 -		} else if(b[k] instanceof Array) {
 -			b[k].last=b[k][b[k].length-1];
 -			b[k].first=b[k][0];
