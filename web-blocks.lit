@@ -431,8 +431,8 @@ depend on something what in turn depend on content.
 	You may wonder why Lisp-ish syntax. Well, between spending time
 	writing parser and writing whole thing i chose latter.
 
-	It was pure javascript at first, but then algorithm demanded all
-	identifiers for dependencies.
+	It started with pure javascript at first, but then algorithm demanded all
+	identifiers for dependencies, so here comes Lisp.
 
 =lisp-parser
 -function parse_sexpr(s) {
