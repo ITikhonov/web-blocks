@@ -220,21 +220,26 @@
 =resolve-block
 -function resolve_coord(b,f) {
 -	try {
+-		if(!b._func[f]) return null;
 -		b[f]=b._func[f].call(b);
 -	} catch(e) {
 -		if(e==NotReadyYet) return false;
+-		if(e instanceof NotReadyYetContent) return e.block;
 -		throw e;
 -	}
 -	return true;
 -}
 
 -function resolve_block(b,path,z) {
+-	if(b._ready) return 0;
 -	var ready=true;
 
 -	for(var k in b) {
 -		if(b[k]==null) continue;
 -		if(b[k].notready) {
--			ready=ready&&resolve_coord(b,k);
+-			var r=resolve_coord(b,k);
+-			ready=ready&&(r===true);
+-			b[k].reason=r;
 -		}
 -	}
 
@@ -244,13 +249,16 @@
 	If we have left&right or top&bottom - we are ready to
 	compute content.
 
+-	var cd=b.right.reason==b && b.bottom.reason==b;
+
 -	var cr=(!b.left.notready&&!b.right.notready) || (!b.top.notready&&!b.bottom.notready);
 
--	if(cr || ready) {
+-	if(cd || cr || ready) {
 -		render_html(b,path,z);
 -		b.contentWidth=b._el.scrollWidth;
 -		b.contentHeight=b._el.scrollHeight;
 -	}
+-	b._ready=ready;
 
 -	return ready?0:1;
 -}
@@ -270,15 +278,15 @@
 	Two rows below are equivalent.
 
 	<pre>
-	page.block1.block2.right = '(+ page.block1.block2.left 10)';
-	page.block1.block2.right = '(+ .left 10)';
+	page.block1.block2.right = 'page.block1.block2.left+10';
+	page.block1.block2.right = 'this.left+10';
 	</pre>
 
 	To refer to parent block use two dots.
 
 	<pre>
 	page.block1.block2.top = 'page.block1.top';
-	page.block1.block2.top = '..top';
+	page.block1.block2.top = 'this._.top';
 	</pre>
 
 	Blocks can be put into array. Last and first elements in array
@@ -304,6 +312,36 @@
 	page.block1.right = '(+ ..pad .left page.halfpage)';
 	page.block2.right = '(+ ..pad .left page.halfpage)';
 	</pre>
+
+=>test/sugar.html
+
+>test-html-pre
+
+-		page = { 
+-			top:		20,
+-			left:		20,
+-			bottom:		700,
+-			right:		700,
+-		}
+
+-		page.block1 = {
+-			top:	'_.top+20',
+-			left:	'_.left+20',
+-			right:	'left+30',
+-			bottom:	'top+contentHeight+20',
+-			html:	'block1 Hello, world!'
+-		}
+
+-		page.block1.block2 = {
+-			top:	'_.top+20',
+-			left:	'_.left+30',
+-			right:	'left+contentWidth',
+-			bottom:	'top+contentHeight',
+-			html:	'block2 Hello, world!'
+-		}
+
+>test-html-post
+
 
 		Three columns
 
@@ -456,6 +494,12 @@
 -	notready:true
 -}
 
+-function NotReadyYetContent(block) {
+-	this.valueOf=function() { throw this; };
+-	this.notready=true;
+-	this.block=block;
+-}
+
 -function parse_block(b,_,_,parent) {
 -	b._=parent;
 -	b._func={};
@@ -467,7 +511,7 @@
 
 -		if(typeof(b[k])=='string' || typeof(b[k])=='number') {
 -			b._source[k]=b[k];
--			b._func[k]=Function('return ('+b[k]+');');
+-			b._func[k]=Function('with(this) { return ('+b[k]+'); }');
 -			b[k]=NotReadyYet;
 -		} else if(b[k] instanceof Array) {
 -			b[k].last=b[k][b[k].length-1];
@@ -483,6 +527,9 @@
 -		}
 -	}
 
+-	b.contentWidth=new NotReadyYetContent(b);
+-	b.contentHeight=new NotReadyYetContent(b);
+
 -}
 
 		Generate HTML
@@ -497,10 +544,19 @@
 -	block._el.innerHTML	=block.html?block.html:'';
 -	block._el.id=path.join('.');
 
--	block._el.style.top	=block.top;
--	block._el.style.height	=block.bottom - block.top;
--	block._el.style.left	=block.left;
--	block._el.style.width	=block.right - block.left;
+-	if(!block.top.notready) {
+-		block._el.style.top	=block.top;
+-		if(!block.bottom.notready) {
+-			block._el.style.height	=block.bottom - block.top;
+-		}
+-	}
+
+-	if(!block.left.notready) {
+-		block._el.style.left	=block.left;
+-		if(!block.right.notready) {
+-			block._el.style.width	=block.right - block.left;
+-		}
+-	}
 
 -	if(!block._el.parentNode) {
 -		document.body.appendChild(block._el);
@@ -511,8 +567,8 @@
 
 =report-unresolved
 -function report_unresolved_field(b,f,name) {
--	if(b[f]==undefined) {
--		console.log('unresolved',name+'.'+f,'because of',b._deps[f]);
+-	if(b[f].notready) {
+-		console.log('unresolved',name+'.'+f,'('+b._source[f]+')');
 -	}
 -}
 
@@ -541,6 +597,7 @@
 -	parse();
 -	var i;
 -	for(i=0;i<300;i++) { if(walk_all(resolve_block,'page',page)==0) break; }
+-	console.log(i);
 -	if(i==300) {
 -		walk_all(report_unresolved,'page',page);
 -	}
