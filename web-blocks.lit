@@ -151,10 +151,6 @@
 -		}
 >test-html-post
 
-	<i>Yes, Lispy, there is a technical reason (algorithm needs some
-	info from source code and i am not in a mood to write fancy parser),
-	will explain down there.</i>
-
 	Right edge of page block is defined relative to viewport
 	width and so on. Position of block2 depends on block1 position
 	and size.
@@ -274,19 +270,19 @@
 
 	First some syntactic sugar to improve readability.
 
-	Instead of referring to block by full name single <code>.</code> can be written.
-	Two rows below are equivalent.
+	Instead of referring to a block by full name, it's properties can
+	be accessed directly. Two rows below are equivalent.
 
 	<pre>
 	page.block1.block2.right = 'page.block1.block2.left+10';
-	page.block1.block2.right = 'this.left+10';
+	page.block1.block2.right = 'left+10';
 	</pre>
 
-	To refer to parent block use two dots.
+	To refer to parent block use '_'.
 
 	<pre>
 	page.block1.block2.top = 'page.block1.top';
-	page.block1.block2.top = 'this._.top';
+	page.block1.block2.top = '_.top';
 	</pre>
 
 	Blocks can be put into array. Last and first elements in array
@@ -294,12 +290,12 @@
 	elements.
 
 	<pre>
-	c2.top = '.prev.top';
-	c2.top = '.next.bottom';
+	c2.top = 'prev.top';
+	c2.top = 'next.bottom';
 
 	page.c = [c1,c2,c3];
-	page.top = '.c.first.top';
-	page.bottom = '.c.last.bottom';
+	page.top = 'c.first.top';
+	page.bottom = 'c.last.bottom';
 	</pre>
 
 
@@ -307,10 +303,10 @@
 	ordinary rules.
 
 	<pre>
-	page.halfpage = '(* 0.5 (.right - .left))';
-	page.pad = 20
-	page.block1.right = '(+ ..pad .left page.halfpage)';
-	page.block2.right = '(+ ..pad .left page.halfpage)';
+	page.halfpage = '0.5*(right-left)';
+	page.pad = 20;
+	page.block1.right = '_.pad+left+page.halfpage';
+	page.block2.right = '_.pad+left+page.halfpage';
 	</pre>
 
 =>test/sugar.html
