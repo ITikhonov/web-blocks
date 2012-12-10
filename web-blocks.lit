@@ -1,3 +1,4 @@
+	<h1>Expression-based positioning</h1>
 
 		Cascading Style Sheets
 
@@ -13,8 +14,8 @@
 	with CSS.
 
 	Here is my humble take on alternative approach for block-level
-	formatting model. Hopefully it can do all what CSS can and
-	even more.
+	formatting model. Hopefully it can do all what CSS is able to do
+	and even more.
 
 		What the heck is layout?
 
@@ -191,10 +192,10 @@
 
 		Resolving coordinates
 
-	In this implementation the very simplistic (and not
-	very effective&nbsp;&ndash; read "slow") approach is used.
+	This implementation uses naive (and not
+	very effective&nbsp;&ndash; read "slow") approach.
 
-	To convert relative coordinates into absolute one
+	To convert relative coordinates into absolute ones
 	algorithm do a lot of iterations. Each time it starts
 	with root block (the one i call "page") and goes down
 	in each subblock and so on.
@@ -202,15 +203,15 @@
 	In each block it goes through all coordinates which are
 	not yet computed into nice number.
 
-	If every identifier in coordinate definition is computed
-	to number, it evaluates definition. Otherwise it proceeds
-	to next coodinate in a block (or next block).
+	It tries to evaluate coodinate definition, if during
+	calculation any yet unknown value encountered - exception
+	throwed and coordinate is left unresolved.
 
 	There are few corner cases involving calculations based on
 	content size, look in a code if you fill curious.
 
 	So after dozens of iterations we should have every block
-	have nice absolute numbers in all four coordinates.
+	with nice absolute numbers in all four coordinates.
 
 
 =resolve-block
@@ -436,11 +437,8 @@
 -		}
 
 >test-html-post
-	
+
 		Implementation
-
-
-		Layout engine
 
 		Walking
 
@@ -448,12 +446,6 @@
 -function each_block(block,func) {
 -	for(var k in block) {
 -		if(k[0]=='_') continue;
--		if(k=='top') continue;
--		if(k=='left') continue;
--		if(k=='right') continue;
--		if(k=='bottom') continue;
--		if(k=='contentWidth') continue;
--		if(k=='contentHeight') continue;
 
 -		if(block[k].notready) continue;
 
@@ -607,6 +599,8 @@
 
 -})();
 
+		Utilities
+
 		Test
 
 =test-html-pre
@@ -618,7 +612,7 @@
 =lorem
 -		var lorem='<div style="padding:1em">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum</div>';
 
-		SVG utilities
+		SVG
 
 =browser-mockup
 -<text x="47" y="5" text-anchor="start">http://brokestream.com/|</text>
