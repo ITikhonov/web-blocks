@@ -286,7 +286,7 @@
 	</pre>
 
 	Blocks can be put into array. Last and first elements in array
-	are addressable. Elements inside of array can address .next and .prev
+	are addressable. Elements inside of array can address 'next' and 'prev'
 	elements.
 
 	<pre>
