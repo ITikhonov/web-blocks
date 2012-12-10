@@ -22,7 +22,7 @@
 		What the heck is layout?
 
 	In the very end of any layout mechanism, you get a bunch
-	of rectangle areas. This rectangles tell you where to
+	of rectangle areas. These rectangles tell you where to
 	draw content on screen.
 
 	There are several ways to define rectangles, i choosed somewhat
