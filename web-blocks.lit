@@ -458,8 +458,8 @@
 -		if(block[k].notready) continue;
 
 -		if(block[k] instanceof Array) {
--			for(var i in block[k]) {
--				func(block[k][i],k);
+-			for(var i=0;i<block[k].length;i++) {
+-				func(block[k][i],k+'.'+i);
 -			}
 -		} else if(typeof block[k]=='object') {
 -			func(block[k],k);
