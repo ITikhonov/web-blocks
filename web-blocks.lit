@@ -179,8 +179,9 @@
 
 =>test/content.html
 
->test-html-pre
-
+-<html>
+-<head>
+-	<style type="text/blocks">
 -		page = { 
 -			top:		20,
 -			left:		20,
@@ -191,20 +192,25 @@
 -		page.block1 = {
 -			top:	'page.top+20',
 -			left:	'page.left+20',
--			right:	'page.block1.left+30',
+-			right:	'page.block1.left+70',
 -			bottom:	'page.block1.top+page.block1.contentHeight+20',
--			html:	'block1 Hello, world!'
 -		}
 
 -		page.block1.block2 = {
 -			top:	'page.block1.top+20',
--			left:	'page.block1.left+30',
+-			left:	'page.block1.left+80',
 -			right:	'page.block1.block2.left+page.block1.block2.contentWidth',
 -			bottom:	'page.block1.block2.top+page.block1.block2.contentHeight',
--			html:	'block2 Hello, world!'
 -		}
-
->test-html-post
+-	</style>
+-</head>
+>browserscantrenderityetwithouthelp
+-<body>
+-	<div id="page" style="border: 1px solid black">page</div>
+-	<div id="page.block1" style="border: 1px solid black">block1 height depends on content.</div>
+-	<div id="page.block1.block2" style="border: 1px solid black">block2 width depends on content.<br>And height.</div>
+-</body>
+-</html>
 
 		Resolving coordinates
 
