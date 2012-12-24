@@ -65,9 +65,6 @@
 
 -<html>
 -<head>
--	<style type="text/css">
--		.apos{position:absolute;margin:0;padding:0;border:1px solid black;overflow:hidden}
--	</style>
 -	<style type="text/blocks">
 -		page = { 
 -			top:		20,
@@ -77,21 +74,23 @@
 -		}
 
 -		page.block1 = { 
--			top:		30,
+-			top:		50,
 -			left:		50, 
--			bottom:		50, 
--			right:		80, 
+-			bottom:		90, 
+-			right:		120, 
 -		}
 -	</style>
 -</head>
 >browserscantrenderityetwithouthelp
 -<body>
+-	<div id="page" style="border: 1px solid black">page</div>
+-	<div id="page.block1" style="border: 1px solid black">block1</div>
 -</body>
 -</html>
 
 		Relative
 
-	But in real life block coordinates can't be defined
+	But in a real life block coordinates can't be defined
 	directly, as they are a function of content (text size,
 	font) or environment (viewport size).
 
@@ -510,6 +509,7 @@
 -	for(var k in b) {
 -		if(k[0]=='_') continue;
 -		if(k=='html') continue;
+-		if(k=='id') continue;
 
 -		if(typeof(b[k])=='string') {
 -			b._source[k]=b[k];
@@ -541,12 +541,18 @@
 =bake-block
 -function render_html(block,path,z) {
 -	if(!block._el) {
--		block._el=document.createElement('div');
+-		var id=path.join('.');
+-		var b=document.getElementById(id);
+-		if(document.getElementById(id)) {
+-			block._el=b;
+-		} else {
+-			block._el=document.createElement('div');
+-			block._el.id=id;
+-		}
 -	}
--	block._el.className='apos';
+-	block._el.className='web-blocks-style';
 -	block._el.style.zIndex=z;
--	block._el.innerHTML	=block.html?block.html:'';
--	block._el.id=path.join('.');
+-	if(block.html) block._el.innerHTML=block.html;
 
 -	if(!block.top.notready) {
 -		block._el.style.top	=block.top;
@@ -631,6 +637,7 @@
 
 =browserscantrenderityetwithouthelp
 -<script src="../main.js"></script>
+-<style type="text/css">.web-blocks-style{position:absolute;margin:0;padding:0;overflow:hidden}</style>
 
 =lorem
 -		var lorem='<div style="padding:1em">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum</div>';
