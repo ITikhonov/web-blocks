@@ -380,7 +380,6 @@
 -			left:	'_.left',
 -			right:	'left+_.w',
 -			bottom:	'top+_.h',
--			html:	'block0'
 -			},
 
 	Following 24 blocks are identical:
@@ -462,6 +461,11 @@
 =>test/catalog.html
 -</body>
 -</html>
+
+		Is it better?
+
+	Is it any better than what HTML/CSS already provides? 
+
 
 		Implementation
 
