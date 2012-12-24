@@ -63,7 +63,12 @@
 
 =>test/basic.html
 
->test-html-pre
+-<html>
+-<head>
+-	<style type="text/css">
+-		.apos{position:absolute;margin:0;padding:0;border:1px solid black;overflow:hidden}
+-	</style>
+-	<style type="text/blocks">
 -		page = { 
 -			top:		20,
 -			left:		30, 
@@ -77,7 +82,12 @@
 -			bottom:		50, 
 -			right:		80, 
 -		}
->test-html-post
+-	</style>
+-</head>
+>browserscantrenderityetwithouthelp
+-<body>
+-</body>
+-</html>
 
 		Relative
 
@@ -585,13 +595,21 @@
 >bake-block
 >report-unresolved
 
+-function styles() {
+-	var s=document.head.children;
+-	for(var i=0;i<s.length;i++) {
+-		if(s[i].type=="text/blocks") {
+-			eval(s[i].innerHTML);
+-		}
+-	}
+-}
 -function parse() { walk_all(parse_block,'page',page); }
 -function bake() { walk_all(render_html,'page',page); }
 -function run() {
+-	styles();
 -	parse();
 -	var i;
 -	for(i=0;i<300;i++) { if(walk_all(resolve_block,'page',page)==0) break; }
--	console.log(i);
 -	if(i==300) {
 -		walk_all(report_unresolved,'page',page);
 -	}
@@ -610,6 +628,9 @@
 
 =test-html-post
 -</script><script src="../main.js"></script><body></body></html>
+
+=browserscantrenderityetwithouthelp
+-<script src="../main.js"></script>
 
 =lorem
 -		var lorem='<div style="padding:1em">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum</div>';
