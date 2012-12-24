@@ -262,8 +262,9 @@
 
 =>test/sugar.html
 
->test-html-pre
-
+-<html>
+-<head>
+-	<style type="text/blocks">
 -		page = { 
 -			top:		20,
 -			left:		20,
@@ -276,7 +277,6 @@
 -			left:	'_.left+20',
 -			right:	'left+30',
 -			bottom:	'top+contentHeight+20',
--			html:	'block1 Hello, world!'
 -		}
 
 -		page.block1.block2 = {
@@ -284,19 +284,24 @@
 -			left:	'_.left+30',
 -			right:	'left+contentWidth',
 -			bottom:	'top+contentHeight',
--			html:	'block2 Hello, world!'
 -		}
-
->test-html-post
-
+-	</style>
+-</head>
+>browserscantrenderityetwithouthelp
+-<body>
+-	<div id="page" style="border: 1px solid black">page</div>
+-	<div id="page.block1" style="border: 1px solid black">block1 height depends on content.</div>
+-	<div id="page.block1.block2" style="border: 1px solid black">block2 width depends on content.<br>And height.</div>
+-</body>
+-</html>
 
 		Three columns
 
 =>test/threecolumn.html
 
->test-html-pre
->lorem
-
+-<html>
+-<head>
+-	<style type="text/blocks">
 -		page = { 
 -			top:		20,
 -			left:		20,
@@ -309,7 +314,6 @@
 -			left:	'_.left',
 -			right:	'left+0.25*(_.right-_.left)',
 -			bottom: '_.bottom',
--			html: lorem
 -		}
 
 -		page.c2 = {
@@ -317,7 +321,6 @@
 -			left:	'_.c1.right',
 -			right:	'left+0.50*(_.right-_.left)',
 -			bottom: '_.bottom',
--			html: lorem
 -		}
 
 -		page.c3 = {
@@ -325,10 +328,22 @@
 -			left:	'_.c2.right',
 -			right:	'left+0.25*(_.right-_.left)',
 -			bottom: '_.bottom',
--			html: lorem
 -		}
-
->test-html-post
+-	</style>
+-</head>
+>browserscantrenderityetwithouthelp
+-<body>
+-	<div id="page.c1">
+>		lorem
+-	</div>
+-	<div id="page.c2">
+>		lorem
+-	</div>
+-	<div id="page.c3">
+>		lorem
+-	</div>
+-</body>
+-</html>
 	
 
 		Catalog view
@@ -339,8 +354,9 @@
 
 =>test/catalog.html
 
->test-html-pre
-
+-<html>
+-<head>
+-	<style type="text/blocks">
 -		page = { 
 -			top:	20,
 -			left:	20,
@@ -365,15 +381,13 @@
 -			right:	'left+_.w',
 -			bottom:	'top+_.h',
 -			html:	'block0'
--		}]
+-			},
 
-	They are identical except of html, so i am being lazy
-	and generate them in a loop. There is no cheating by
-	using javascript directly for something (except block
-	naming in 'html:').
+	Following 24 blocks are identical:
 
--		for(var i=1;i<24;i++) {
--			page.c.push({
+=identical24blocks
+
+-			{
 -				top: 'prev.top+(samerow==true?0:140)',
 -				left: 'samerow==true?inrow:_.left',
 -				right:	'left+_.w',
@@ -381,12 +395,73 @@
 
 -				samerow:'(inrow+_.w-0.01)<_.right',
 -				inrow:'prev.left+_.dx',
+-			},
 
--				html: 'block'+i
--			});
--		}
+	So i repeat them 23 times more:
 
->test-html-post
+=>test/catalog.html
+>identical24blocks
+>identical24blocks
+>identical24blocks
+>identical24blocks
+>identical24blocks
+>identical24blocks
+>identical24blocks
+>identical24blocks
+>identical24blocks
+>identical24blocks
+>identical24blocks
+>identical24blocks
+>identical24blocks
+>identical24blocks
+>identical24blocks
+>identical24blocks
+>identical24blocks
+>identical24blocks
+>identical24blocks
+>identical24blocks
+>identical24blocks
+>identical24blocks
+>identical24blocks
+
+=>test/catalog.html
+-		];
+-	</style>
+-</head>
+>browserscantrenderityetwithouthelp
+-<body>
+
+	This part is quite boring also, it contains 25 divs.
+
+=>test/catalog.html
+-	<div id="page.c.0" style="background-color:grey">block</div>
+-	<div id="page.c.1" style="background-color:grey">block</div>
+-	<div id="page.c.2" style="background-color:grey">block</div>
+-	<div id="page.c.3" style="background-color:grey">block</div>
+-	<div id="page.c.4" style="background-color:grey">block</div>
+-	<div id="page.c.5" style="background-color:grey">block</div>
+-	<div id="page.c.6" style="background-color:grey">block</div>
+-	<div id="page.c.7" style="background-color:grey">block</div>
+-	<div id="page.c.8" style="background-color:grey">block</div>
+-	<div id="page.c.9" style="background-color:grey">block</div>
+-	<div id="page.c.10" style="background-color:grey">block</div>
+-	<div id="page.c.11" style="background-color:grey">block</div>
+-	<div id="page.c.12" style="background-color:grey">block</div>
+-	<div id="page.c.13" style="background-color:grey">block</div>
+-	<div id="page.c.14" style="background-color:grey">block</div>
+-	<div id="page.c.15" style="background-color:grey">block</div>
+-	<div id="page.c.16" style="background-color:grey">block</div>
+-	<div id="page.c.17" style="background-color:grey">block</div>
+-	<div id="page.c.18" style="background-color:grey">block</div>
+-	<div id="page.c.19" style="background-color:grey">block</div>
+-	<div id="page.c.20" style="background-color:grey">block</div>
+-	<div id="page.c.21" style="background-color:grey">block</div>
+-	<div id="page.c.22" style="background-color:grey">block</div>
+-	<div id="page.c.23" style="background-color:grey">block</div>
+
+=>test/catalog.html
+-</body>
+-</html>
 
 		Implementation
 
@@ -653,7 +728,7 @@
 -<style type="text/css">.web-blocks-style{position:absolute;margin:0;padding:0;overflow:hidden}</style>
 
 =lorem
--		var lorem='<div style="padding:1em">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum</div>';
+-		<div style="padding:1em">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum</div>
 
 		SVG
 
