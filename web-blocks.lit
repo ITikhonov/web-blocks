@@ -211,78 +211,6 @@
 -	<div id="page.block1.block2" style="border: 1px solid black">block2 width depends on content.<br>And height.</div>
 -</body>
 -</html>
-
-		Resolving coordinates
-
-	This implementation uses naive (and not
-	very effective&nbsp;&ndash; read "slow") approach.
-
-	To convert relative coordinates into absolute ones
-	algorithm do a lot of iterations. Each time it starts
-	with root block (the one i call "page") and goes down
-	in each subblock and so on.
-
-	In each block it goes through all coordinates which are
-	not yet computed into nice number.
-
-	It tries to evaluate coodinate definition, if during
-	calculation any yet unknown value encountered - exception
-	throwed and coordinate is left unresolved.
-
-	There are few corner cases involving calculations based on
-	content size, look in a code if you fill curious.
-
-	So after dozens of iterations we should have every block
-	with nice absolute numbers in all four coordinates.
-
-
-=resolve-block
--function resolve_coord(b,f) {
--	try {
--		if(!b._func[f]) return null;
--		b[f]=b._func[f].call(b).valueOf();
--	} catch(e) {
--		if(e==NotReadyYet) return false;
--		if(e instanceof NotReadyYetContent) return e.block;
--		throw e;
--	}
--	return true;
--}
-
--function resolve_block(b,path,z) {
--	if(b._ready) return 0;
--	var ready=true;
-
--	for(var k in b) {
--		if(b[k]==null) continue;
--		if(b[k].notready) {
--			var r=resolve_coord(b,k);
--			ready=ready&&(r===true);
--			b[k].reason=r;
--		}
--	}
-
-	Sometimes, the only way to resolve block is to compute
-	it's content (like when right and bottom depend on content).
-
-	If we have left&right or top&bottom - we are ready to
-	compute content.
-
--	var cd=b.right.reason==b && b.bottom.reason==b;
-
--	var cr=(!b.left.notready&&!b.right.notready) || (!b.top.notready&&!b.bottom.notready);
-
--	if(cd || cr || ready) {
--		render_html(b,path,z);
--		b.contentWidth=b._el.scrollWidth;
--		b.contentHeight=b._el.scrollHeight;
--	}
--	b._ready=ready;
-
--	return ready?0:1;
--}
-
-
 		Typical layouts
 
 	So can this very simplistic approach be at least comparable to CSS?
@@ -461,6 +389,80 @@
 >test-html-post
 
 		Implementation
+
+
+		Resolving coordinates
+
+	This implementation uses naive (and not
+	very effective&nbsp;&ndash; read "slow") approach.
+
+	To convert relative coordinates into absolute ones
+	algorithm do a lot of iterations. Each time it starts
+	with root block (the one i call "page") and goes down
+	in each subblock and so on.
+
+	In each block it goes through all coordinates which are
+	not yet computed into nice number.
+
+	It tries to evaluate coodinate definition, if during
+	calculation any yet unknown value encountered - exception
+	throwed and coordinate is left unresolved.
+
+	There are few corner cases involving calculations based on
+	content size, look in a code if you fill curious.
+
+	So after dozens of iterations we should have every block
+	with nice absolute numbers in all four coordinates.
+
+
+=resolve-block
+-function resolve_coord(b,f) {
+-	try {
+-		if(!b._func[f]) return null;
+-		b[f]=b._func[f].call(b).valueOf();
+-	} catch(e) {
+-		if(e==NotReadyYet) return false;
+-		if(e instanceof NotReadyYetContent) return e.block;
+-		throw e;
+-	}
+-	return true;
+-}
+
+-function resolve_block(b,path,z) {
+-	if(b._ready) return 0;
+-	var ready=true;
+
+-	for(var k in b) {
+-		if(b[k]==null) continue;
+-		if(b[k].notready) {
+-			var r=resolve_coord(b,k);
+-			ready=ready&&(r===true);
+-			b[k].reason=r;
+-		}
+-	}
+
+	Sometimes, the only way to resolve block is to compute
+	it's content (like when right and bottom depend on content).
+
+	If we have left&right or top&bottom - we are ready to
+	compute content.
+
+-	var cd=b.right.reason==b && b.bottom.reason==b;
+
+-	var cr=(!b.left.notready&&!b.right.notready) || (!b.top.notready&&!b.bottom.notready);
+
+-	if(cd || cr || ready) {
+-		render_html(b,path,z);
+-		b.contentWidth=b._el.scrollWidth;
+-		b.contentHeight=b._el.scrollHeight;
+-	}
+-	b._ready=ready;
+
+-	return ready?0:1;
+-}
+
+
+
 
 		Walking
 
