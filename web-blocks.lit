@@ -16,8 +16,8 @@
 	with CSS.
 
 	Here is my humble take on alternative approach for block-level
-	formatting model. Hopefully it can do all what CSS is able to do
-	and even more.
+	formatting model. Hopefully it can do all what CSS on block-level
+	is able to do and even more.
 
 		What the heck is layout?
 
@@ -28,11 +28,12 @@
 	There are several ways to define rectangles, i choosed somewhat
 	reminiscent of CSS way by using top, bottom, left and right
 	edges. But bottom and right have different meaning, they still
-	expressed relative to origin (i.e. left and right use same coordinate
-	system unlike that of CSS).
+	expressed relative to document origin (i.e. left and right use
+	same coordinate system unlike that of CSS).
 
 	Other difference is that all coordinates are expressed relative to
-	top-left corner of document page (think JQuery's .offset()).
+	top-left corner of document page (think JQuery's .offset()), not
+	relative to containing element.
 
 	<object data="basic.svg" type="image/svg+xml"></object> 
 
@@ -54,7 +55,9 @@
 
 -</svg>
 
-	I call these rectangles "blocks".
+	I call these rectangles "blocks". Here i use JavaScript syntax
+	to define blocks. Here is two blocks, page and page.block1. All
+	example urls are clickable and functional.
 
 =>test/basic.html
 
@@ -330,6 +333,11 @@
 -			bottom: '_.bottom',
 -		}
 -	</style>
+-	<style type="text/css">
+-		#page\.c1 { border-bottom:1px solid black }
+-		#page\.c2 { border-bottom:5px dashed black }
+-		#page\.c3 { border-bottom:1px solid black }
+-	</style>
 -</head>
 >browserscantrenderityetwithouthelp
 -<body>
@@ -424,6 +432,7 @@
 >identical24blocks
 
 =>test/catalog.html
+
 -		];
 -	</style>
 -</head>
@@ -459,12 +468,20 @@
 -	<div id="page.c.23" style="background-color:grey">block</div>
 
 =>test/catalog.html
+
 -</body>
 -</html>
 
 		Is it better?
 
-	Is it any better than what HTML/CSS already provides? 
+	Is it any better than what HTML/CSS already provides?
+
+	Who knows, i am going into pure speculation here, but at least
+	it looks more deterministic then CSS model.  It's easier to
+	implement GUI editor for it. It's easier to manage from
+	scripts then DOM. It's completely detached from data layout.
+
+	Just note, that stated here is not a fact, but mere opinion.
 
 
 		Implementation
@@ -641,8 +658,8 @@
 -			block._el=document.createElement('div');
 -			block._el.id=id;
 -		}
+-		block._el.className+=' web-blocks-style';
 -	}
--	block._el.className='web-blocks-style';
 -	block._el.style.zIndex=z;
 -	if(block.html) block._el.innerHTML=block.html;
 
