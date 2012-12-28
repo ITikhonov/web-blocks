@@ -55,9 +55,12 @@
 
 -</svg>
 
-	I call these rectangles "blocks". Here i use JavaScript syntax
-	to define blocks. Here is two blocks, page and page.block1. All
-	example urls are clickable and functional.
+	I call these rectangles "blocks". Language used to describe
+	layout resemble JavaScript (well, it is JavaScript actually,
+	constrained to basic object literals and arithmetics).
+
+	Here are two blocks, page and page.block1. All example urls are
+	clickable and functional.
 
 =>test/basic.html
 
